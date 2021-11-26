@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
-# import Tkinter as tk
 from tkinter import *
 from sklearn.cluster import KMeans
 from sklearn.model_selection import train_test_split
@@ -10,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler 
 from sklearn.metrics import silhouette_score
 
+# read dataset
 data=pd.read_csv('food.csv')
 
 BreakfastFoodData=data['Breakfast']
@@ -45,7 +44,7 @@ def Weight_Loss_Plan():
         if LunchFoodDataNumpy[i]==1:
             LunchFoodItem.append(FoodItemsData[i])
             LunchFoodItemID.append(i)
-        if LunchFoodDataNumpy[i]==1:
+        if DinnerFoodDataNumpy[i]==1:
             DinnerFoodItem.append(FoodItemsData[i])
             DinnerFoodItemID.append(i)
 
@@ -101,73 +100,75 @@ def Weight_Loss_Plan():
         clbmi=1
     elif ( bmi >=30):
         print("severely overweight")
-        clbmi=0   
+        clbmi=0
 
-    val1=DinnerFoodItemIDdata.describe()
+    # tinh BMR
+    # Nam - BMR = 10W + 6.25H – 5A + 5
+    # Nu - BMR = 10W + 6.25H – 5A - 161
+    gender=int(e2.get())
+    activity_level=float(e5.get())
+    if (gender == 1):
+        bmr = 10*weight + 6.25*height - 5*age + 5
+    elif (gender == 0):
+        bmr = 10*weight + 6.25*height - 5*age - 161
+
+    tdee = bmr * activity_level
+    print(bmr)
+    print(tdee)
+
+    # val1=DinnerFoodItemIDdata.describe()
     # print (val1)
     # valTog=val1.T
     # print (valTog.shape)
     # print (valTog)
-    abc = BreakfastFoodItemIDData
+
+    BreakfastFoodItem_Test = BreakfastFoodItemIDData
+    LunchFoodItem_Test = LunchFoodItemIDdata
+    DinnerFoodItem_Test = DinnerFoodItemIDdata
     BreakfastFoodItemIDData=BreakfastFoodItemIDData.to_numpy()
     DinnerFoodItemIDdata=DinnerFoodItemIDdata.to_numpy()
     LunchFoodItemIDdata=LunchFoodItemIDdata.to_numpy()
     ti=(clbmi+agecl)/2
   
-    ## K-Means Based  Breakfast Food
-    #Importing the standard scaler module and applying it on continuous variables
-    Datacalorie=BreakfastFoodItemIDData[0:,1:len(BreakfastFoodItemIDData)] #nutrion data
-    # print(Datacalorie)
-    S = StandardScaler()
-    scaled_data = S.fit_transform(Datacalorie)
-    print(scaled_data)
+    ###### K-MEANS FOR BREAKFAST FOOD
 
-    k_means = KMeans(n_clusters=3)
-    k_means.fit(scaled_data)
-    print(k_means.labels_)
+    #Importing the standard scaler module and applying it on continuous variables
+    BreakfastDatacalorie=BreakfastFoodItemIDData[0:,2:len(BreakfastFoodItemIDData)] #nutrion data
+    S = StandardScaler()
+    breakfast_scaled_data = S.fit_transform(BreakfastDatacalorie)
+    # print(breakfast_scaled_data)
+
+    # First, test Kmeans with clusters=3
+    k_means_breakfast = KMeans(n_clusters=3)
+    k_means_breakfast.fit(breakfast_scaled_data)
+    brklbl=k_means_breakfast.labels_
+    print(brklbl)
 
     #To determine the optimum number of clusters, check the wss score for a given range of k
     wss =[] 
     for i in range(1,11):
-        KM = KMeans(n_clusters=i)
-        KM.fit(scaled_data)
-        wss.append(KM.inertia_)
+        KM_Breakfast = KMeans(n_clusters=i)
+        KM_Breakfast.fit(breakfast_scaled_data)
+        wss.append(KM_Breakfast.inertia_)
     print(wss)
-    # plt.plot(range(1,11), wss, marker = '*')
+    plt.plot(range(1,11), wss, marker = '*')
     # plt.show()
 
     #Checking for n-clusters=3
-    k_means_three = KMeans(n_clusters = 3)
-    y_kmeans = k_means_three.fit(scaled_data)
-    print('WSS for K=3:', k_means_three.inertia_)
-    labels_three = k_means_three.labels_
-    print(labels_three)
+    k_means_three_breakfast = KMeans(n_clusters = 3)
+    k_means_three_breakfast.fit(breakfast_scaled_data)
+    print('WSS for K=3:', k_means_three_breakfast.inertia_)
+    labels_three = k_means_three_breakfast.labels_
+    # print(labels_three)
     #Calculating silhouette_score for k=3
-    print(silhouette_score(scaled_data, labels_three))
+    print(silhouette_score(breakfast_scaled_data, labels_three))
 
+    # Overview data in clusters
     length = len(BreakfastFoodItemIDData) + 2
-    abc['KMCluster'] = k_means.labels_
-    # abc = abc.iloc[:,2:length].astype(float)
-    # abc["KMCluster"] = pd.to_numeric(abc["KMCluster"], downcast="float")
-    # print(abc.iloc[:,1:length])
-    clust_profile=abc.iloc[:,1:length].astype(float).groupby(abc['KMCluster']).mean()
-    clust_profile['KMFrequency']=abc.KMCluster.value_counts().sort_index()
+    BreakfastFoodItem_Test['KMCluster'] = brklbl
+    clust_profile=BreakfastFoodItem_Test.iloc[:,2:length].astype(float).groupby(BreakfastFoodItem_Test['KMCluster']).mean()
+    clust_profile['KMFrequency']=BreakfastFoodItem_Test.KMCluster.value_counts().sort_index()
     print(clust_profile)
-
-    # Datacalorie=BreakfastFoodItemIDData[0:,1:len(BreakfastFoodItemIDData)] #nutrion data
-    # X = np.array(Datacalorie)
-    # print(X)
-    # kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
-    # XValu=np.arange(0,len(kmeans.labels_))
-    # brklbl=kmeans.labels_
-    # print ('## Prediction Result ##')
-    # print(brklbl)
-
-    # kmeanss = KMeans(n_clusters = 3, init = 'k-means++', random_state = 0)
-    # y_kmeans = kmeanss.fit_predict(X)
-    # arr=y_kmeans
-    # abc['cluster'] = arr.tolist()
-    # print(abc)
 
     # XValu=np.arange(0,len(kmeans.labels_))
     # fig,axs=plt.subplots(1,1,figsize=(15,5))
@@ -175,6 +176,138 @@ def Weight_Loss_Plan():
     # print(len(brklbl))
     # plt.title("Predicted Low-High Weigted Calorie Foods")
     # plt.show()
+    print("--------------------------------------------------------------------")
+
+    ####### K-MEANS FOR LUNCH FOOD
+    LunchDatacalorie=LunchFoodItemIDdata[0:,2:len(LunchFoodItemIDdata)]
+    L = StandardScaler()
+    lunch_scaled_data = L.fit_transform(LunchDatacalorie)
+    # print(lunch_scaled_data)
+
+    k_means_lunch = KMeans(n_clusters=3)
+    k_means_lunch.fit(lunch_scaled_data)
+    lnchlbl=k_means_lunch.labels_
+    # print(k_means_lunch.labels_)
+
+    wss =[] 
+    for i in range(1,11):
+        KM_Lunch = KMeans(n_clusters=i)
+        KM_Lunch.fit(lunch_scaled_data)
+        wss.append(KM_Lunch.inertia_)
+    print(wss)
+    plt.plot(range(1,11), wss, marker = '*')
+    # plt.show()
+
+    k_means_three_lunch = KMeans(n_clusters = 3)
+    k_means_three_lunch.fit(lunch_scaled_data)
+    print('WSS for K=3:', k_means_three_lunch.inertia_)
+    labels_three = k_means_three_lunch.labels_
+    # print(labels_three)
+    print(silhouette_score(lunch_scaled_data, labels_three))
+
+    length = len(LunchFoodItemIDdata) + 2
+    LunchFoodItem_Test['KMCluster'] = lnchlbl
+    clust_profile=LunchFoodItem_Test.iloc[:,2:length].astype(float).groupby(LunchFoodItem_Test['KMCluster']).mean()
+    clust_profile['KMFrequency']=LunchFoodItem_Test.KMCluster.value_counts().sort_index()
+    print(clust_profile)
+    print("--------------------------------------------------------------------")
+
+    ####### K-MEANS FOR DINNER FOOD
+    DinnerDatacalorie=DinnerFoodItemIDdata[0:,2:len(DinnerFoodItemIDdata)] #nutrion data
+    D = StandardScaler()
+    dinner_scaled_data = D.fit_transform(DinnerDatacalorie)
+    # print(dinner_scaled_data)
+
+    k_means_dinner = KMeans(n_clusters=3)
+    k_means_dinner.fit(dinner_scaled_data)
+    dnrlbl=k_means_dinner.labels_
+    print(k_means_dinner.labels_)
+
+    wss =[] 
+    for i in range(1,11):
+        KM_Dinner = KMeans(n_clusters=i)
+        KM_Dinner.fit(dinner_scaled_data)
+        wss.append(KM_Dinner.inertia_)
+    print(wss)
+    plt.plot(range(1,11), wss, marker = '*')
+    # plt.show()
+
+    k_means_three_dinner = KMeans(n_clusters=3)
+    k_means_three_dinner.fit(dinner_scaled_data)
+    print('WSS for K=3:', k_means_three_dinner.inertia_)
+    labels_three = k_means_three_dinner.labels_
+    print(labels_three)
+    print(silhouette_score(dinner_scaled_data, labels_three))
+
+    length = len(DinnerFoodItemIDdata) + 2
+    DinnerFoodItem_Test['KMCluster'] = dnrlbl
+    clust_profile=DinnerFoodItem_Test.iloc[:,2:length].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
+    clust_profile['KMFrequency']=DinnerFoodItem_Test.KMCluster.value_counts().sort_index()
+    print(clust_profile)
+
+    ### TRAIN SET / TEST SET
+    dataset=pd.read_csv('train_data.csv')
+    print(dataset.head())
+    datasetT=dataset.T
+    print(datasetT.head())
+
+    bmicls=[0,1,2,3,4]
+    agecls=[0,1,2,3,4]
+    weightloss_nutrion=datasetT.iloc[[1,2,7,8]]
+    print(weightloss_nutrion.head())
+
+    weightloss_nutrion=weightloss_nutrion.T
+    print(weightloss_nutrion.head())
+
+    weightloss_nutrion_numpy = weightloss_nutrion.to_numpy()
+    print(weightloss_nutrion_numpy)
+
+    weightloss_zeros = np.zeros((len(weightloss_nutrion_numpy)*5,6),dtype=np.float32)
+    print(weightloss_zeros)
+
+    t=0
+    r=0
+    s=0
+    yt=[]
+    yr=[]
+    ys=[]
+    for zz in range(5):
+        for jj in range(len(weightloss_nutrion_numpy)):
+            valloc=list(weightloss_nutrion_numpy[jj])
+            valloc.append(bmicls[zz])
+            valloc.append(agecls[zz])
+            # print(valloc)
+            weightloss_zeros[t]=np.array(valloc)
+            # print(weightloss_zeros)
+            yt.append(brklbl[jj])
+            # print(yt)
+            t+=1
+            
+        for jj in range(len(weightloss_nutrion_numpy)):
+            valloc=list(weightloss_nutrion_numpy[jj])
+            valloc.append(bmicls[zz])
+            valloc.append(agecls[zz])
+            weightloss_zeros[r]=np.array(valloc)
+            yr.append(lnchlbl[jj])
+            r+=1
+            
+        for jj in range(len(weightloss_nutrion_numpy)):
+            valloc=list(weightloss_nutrion_numpy[jj])
+            valloc.append(bmicls[zz])
+            valloc.append(agecls[zz])
+            weightloss_zeros[s]=np.array(valloc)
+            ys.append(dnrlbl[jj])
+            s+=1
+
+    X_test=np.zeros((len(weightloss_nutrion_numpy),6),dtype=np.float32)
+    
+    for jj in range(len(weightloss_nutrion_numpy)):
+        valloc=list(weightloss_nutrion_numpy[jj])
+        valloc.append(agecl)
+        valloc.append(clbmi)
+        X_test[jj]=np.array(valloc)*ti
+
+    print(X_test)
 
 if __name__ == '__main__':
     main_win = Tk()
