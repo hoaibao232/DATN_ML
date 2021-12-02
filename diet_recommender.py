@@ -729,3 +729,89 @@ if __name__ == '__main__':
     main_win.wm_title("DIET RECOMMENDATION SYSTEM")
 
     main_win.mainloop()
+
+
+
+# ### TRAIN SET / TEST SET
+    # dataset=pd.read_csv('train_data.csv')
+    # # print(dataset.head())
+    # datasetT=dataset.T
+    # # print(datasetT.head())
+
+    # bmicls=[0,1,2,3,4]
+    # agecls=[0,1,2,3,4]
+    # weightloss_nutrion=datasetT.iloc[[1,2,7,8]]
+    # # print(weightloss_nutrion.head())
+
+    # weightloss_nutrion=weightloss_nutrion.T
+    # # print(weightloss_nutrion.head())
+
+    # weightloss_nutrion_numpy = weightloss_nutrion.to_numpy()
+    # # print(weightloss_nutrion_numpy)
+
+    # weightloss_zeros = np.zeros((len(weightloss_nutrion_numpy)*5,6),dtype=np.float32)
+    # # print(weightloss_zeros)
+
+    # t=0
+    # r=0
+    # s=0
+    # yt=[]
+    # yr=[]
+    # ys=[]
+    # for zz in range(5):
+    #     for jj in range(len(weightloss_nutrion_numpy)):
+    #         valloc=list(weightloss_nutrion_numpy[jj])
+    #         valloc.append(bmicls[zz])
+    #         valloc.append(agecls[zz])
+    #         # print(valloc)
+    #         weightloss_zeros[t]=np.array(valloc)
+    #         # print(weightloss_zeros)
+    #         yt.append(brklbl[jj])
+    #         # print(yt)
+    #         t+=1
+            
+    #     for jj in range(len(weightloss_nutrion_numpy)):
+    #         valloc=list(weightloss_nutrion_numpy[jj])
+    #         valloc.append(bmicls[zz])
+    #         valloc.append(agecls[zz])
+    #         weightloss_zeros[r]=np.array(valloc)
+    #         yr.append(lnchlbl[jj])
+    #         r+=1
+            
+    #     for jj in range(len(weightloss_nutrion_numpy)):
+    #         valloc=list(weightloss_nutrion_numpy[jj])
+    #         valloc.append(bmicls[zz])
+    #         valloc.append(agecls[zz])
+    #         weightloss_zeros[s]=np.array(valloc)
+    #         ys.append(dnrlbl[jj])
+    #         s+=1
+
+    # X_test=np.zeros((len(weightloss_nutrion_numpy),6),dtype=np.float32)
+    
+    # for jj in range(len(weightloss_nutrion_numpy)):
+    #     valloc=list(weightloss_nutrion_numpy[jj])
+    #     valloc.append(agecl)
+    #     valloc.append(clbmi)
+    #     X_test[jj]=np.array(valloc)*ti
+
+    # y = yt
+    # # X = weightloss_nutrion
+    # X = weightloss_zeros
+
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
+    # # print(X_train)
+    # # print(X_test)
+    # #Create a Gaussian Classifier
+    # clf=RandomForestClassifier(n_estimators=100)
+
+    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    # clf.fit(X_train,y_train)
+
+    # y_pred=clf.predict(X_test)
+    # print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+    # print(y_pred)
+
+    # print ('SUGGESTED FOOD ITEMS ::')
+    # for ii in range(len(y_pred)):
+    #     if y_pred[ii]==2:
+    #         print (data.loc[[ii]])
