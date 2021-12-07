@@ -9,6 +9,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler 
 from sklearn.metrics import silhouette_score
 from sklearn import metrics
+from sklearn.tree import export_graphviz
+import pydot
 
 # read dataset
 data=pd.read_csv('food.csv')
@@ -20,8 +22,21 @@ DinnerFoodData=data['Dinner']
 DinnerFoodDataNumpy=DinnerFoodData.to_numpy()
 FoodItemsData=data['Food_items']
 
+def food_data():
+    FoodsData = data
+    FoodsData=FoodsData.T 
+    val=list(np.arange(5,16))
+    Valapnd=[0]+[4]+val 
+    FoodItemIDData=FoodsData.iloc[Valapnd]
+    FoodItemIDData=FoodItemIDData.T
+
+    return FoodItemIDData
+
 def print_user_input():
     print("\n Age: %s\n Gender: %s\n Weight: %s kg\n Height: %s cm\n Activity level: %s\n Veg or NonVeg: %s\n " % (e1.get(), e2.get(),e3.get(), e4.get(), e5.get(), e6.get()))
+
+def print_prediction_input():
+    print("\n Calories: %s\n Fat: %s g\n Protein: %s g\n Carb: %s g " % (e8.get(),e9.get(), e10.get(), e11.get()))
 
 def calc_BMI():
     # tinh BMI
@@ -227,6 +242,49 @@ def dinner_cluster_food(DinnerFoodItemIDdata, DinnerFoodItem_Test):
 
     return dnrlbl
 
+def cluster_food(FoodItemIDData, FoodItem_Test):
+    ###### K-MEANS FOR ALL FOOD
+    
+    #Importing the standard scaler module and applying it on continuous variables
+    BreakfastDatacalorie=FoodItemIDData[0:,2:len(FoodItemIDData)] #nutrion data
+    S = StandardScaler()
+    breakfast_scaled_data = S.fit_transform(BreakfastDatacalorie)
+    # print(breakfast_scaled_data)
+
+    # First, test Kmeans with clusters=3
+    k_means_breakfast = KMeans(n_clusters=3, random_state=0)
+    k_means_breakfast.fit(breakfast_scaled_data)
+    labels=k_means_breakfast.labels_
+    # print(brklbl)
+
+    #To determine the optimum number of clusters, check the wss score for a given range of k
+    wss =[] 
+    for i in range(1,11):
+        KM_Breakfast = KMeans(n_clusters=i)
+        KM_Breakfast.fit(breakfast_scaled_data)
+        wss.append(KM_Breakfast.inertia_)
+    print(wss)
+    plt.plot(range(1,11), wss, marker = '*')
+    plt.show()
+
+    #Checking for n-clusters=3
+    k_means_three_breakfast = KMeans(n_clusters = 3)
+    k_means_three_breakfast.fit(breakfast_scaled_data)
+    print('WSS for K=3:', k_means_three_breakfast.inertia_)
+    labels_three = k_means_three_breakfast.labels_
+    # print(labels_three)
+    #Calculating silhouette_score for k=3
+    print(silhouette_score(breakfast_scaled_data, labels_three))
+
+    # Overview data in clusters
+    length = len(FoodItemIDData) + 2
+    FoodItem_Test['KMCluster'] = labels
+    clust_profile=FoodItem_Test.iloc[:,2:length].astype(float).groupby(FoodItem_Test['KMCluster']).mean()
+    clust_profile['KMFrequency']=FoodItem_Test.KMCluster.value_counts().sort_index()
+    print(clust_profile)
+
+    return labels
+
 def Weight_Loss_Plan():
     print_user_input()
 
@@ -277,7 +335,7 @@ def Weight_Loss_Plan():
         print('Testing Labels Shape:', test_labels.shape)
 
         # #Create a Gaussian Classifier
-        clf=RandomForestClassifier(n_estimators = 1000, random_state = 42)
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
         # #Train the model using the training sets y_pred=clf.predict(X_test)
         clf.fit(train_features, train_labels)
@@ -294,6 +352,16 @@ def Weight_Loss_Plan():
 
         # abc=clf.predict([[435,9.70,9.50,55.10,0]])
         # print(abc)
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
         
     if mealTime==2:
         # Lunch
@@ -311,7 +379,7 @@ def Weight_Loss_Plan():
         print('Testing Labels Shape:', test_labels.shape)
 
         # #Create a Gaussian Classifier
-        clf=RandomForestClassifier(n_estimators = 1000, random_state = 42)
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
         # #Train the model using the training sets y_pred=clf.predict(X_test)
         clf.fit(train_features, train_labels)
@@ -325,6 +393,15 @@ def Weight_Loss_Plan():
         for idx, row in LunchNutrition.iterrows():
             if row['KMCluster']==1:
                 print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
     if mealTime==3:
         # Dinner
@@ -342,7 +419,7 @@ def Weight_Loss_Plan():
         print('Testing Labels Shape:', test_labels.shape)
 
         # #Create a Gaussian Classifier
-        clf=RandomForestClassifier(n_estimators = 1000, random_state = 42)
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
         # #Train the model using the training sets y_pred=clf.predict(X_test)
         clf.fit(train_features, train_labels)
@@ -354,8 +431,369 @@ def Weight_Loss_Plan():
 
         print ('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (DINNER)')
         for idx, row in DinnerNutrition.iterrows():
-            if row['KMCluster']==1 or row['KMCluster']==2:
+            if row['KMCluster']==1:
                 print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+def Weight_Gain_Plan():
+    print_user_input()
+
+    BMI = calc_BMI()
+    TDEE = calc_TDEE()
+
+    BreakfastFoodItemIDData, LunchFoodItemIDdata, DinnerFoodItemIDdata = meal_food_data()
+
+    BreakfastNutrition = BreakfastFoodItemIDData
+    LunchNutrition = LunchFoodItemIDdata
+    DinnerNutrition = DinnerFoodItemIDdata
+
+    BreakfastFoodItemIDData=BreakfastFoodItemIDData.to_numpy()
+    DinnerFoodItemIDdata=DinnerFoodItemIDdata.to_numpy()
+    LunchFoodItemIDdata=LunchFoodItemIDdata.to_numpy()
+
+    brklbl = breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastNutrition)
+    print("--------------------------------------------------------------------")
+
+    lnchlbl = lunch_cluster_food(LunchFoodItemIDdata, LunchNutrition)
+    print("--------------------------------------------------------------------")
+
+    dnrlbl = dinner_cluster_food(DinnerFoodItemIDdata, DinnerNutrition)
+    print("--------------------------------------------------------------------")
+
+    ## CREATE TRAIN SET FOR WEIGHT GAIN
+    mealTime=int(e7.get())
+    if mealTime==1:
+        # Breakfast
+        # print(BreakfastNutrition)
+        labels = np.array(BreakfastNutrition['KMCluster'])
+        features= BreakfastNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
+        feature_list = list(features.columns)
+        features = np.array(features)
+
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+        print('Training Features Shape:', train_features.shape)
+        print('Training Labels Shape:', train_labels.shape)
+        print('Testing Features Shape:', test_features.shape)
+        print('Testing Labels Shape:', test_labels.shape)
+
+        # #Create a Gaussian Classifier
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+        # #Train the model using the training sets y_pred=clf.predict(X_test)
+        clf.fit(train_features, train_labels)
+
+        y_pred=clf.predict(test_features)
+
+        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+        # print(y_pred)
+
+        print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (BREAKFAST)')
+        for idx, row in BreakfastNutrition.iterrows():
+            if row['KMCluster']==1:
+                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+
+        # abc=clf.predict([[435,9.70,9.50,55.10,0]])
+        # print(abc)
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+    if mealTime==2:
+        # Lunch
+        # print(LunchNutrition)
+
+        labels = np.array(LunchNutrition['KMCluster'])
+        features= LunchNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
+        feature_list = list(features.columns)
+        features = np.array(features)
+
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+        print('Training Features Shape:', train_features.shape)
+        print('Training Labels Shape:', train_labels.shape)
+        print('Testing Features Shape:', test_features.shape)
+        print('Testing Labels Shape:', test_labels.shape)
+
+        # #Create a Gaussian Classifier
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+        # #Train the model using the training sets y_pred=clf.predict(X_test)
+        clf.fit(train_features, train_labels)
+
+        y_pred=clf.predict(test_features)
+
+        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+        # print(y_pred)
+
+        print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (LUNCH)')
+        for idx, row in LunchNutrition.iterrows():
+            if row['KMCluster']==2:
+                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+    if mealTime==3:
+        # Dinner
+        # print(DinnerNutrition)
+
+        labels = np.array(DinnerNutrition['KMCluster'])
+        features= DinnerNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
+        feature_list = list(features.columns)
+        features = np.array(features)
+
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+        print('Training Features Shape:', train_features.shape)
+        print('Training Labels Shape:', train_labels.shape)
+        print('Testing Features Shape:', test_features.shape)
+        print('Testing Labels Shape:', test_labels.shape)
+
+        # #Create a Gaussian Classifier
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+        # #Train the model using the training sets y_pred=clf.predict(X_test)
+        clf.fit(train_features, train_labels)
+
+        y_pred=clf.predict(test_features)
+
+        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+        # print(y_pred)
+
+        print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (DINNER)')
+        for idx, row in DinnerNutrition.iterrows():
+            if row['KMCluster']==0 or row['KMCluster']==1:
+                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+def Maintenance_Plan():
+    print_user_input()
+
+    BMI = calc_BMI()
+    TDEE = calc_TDEE()
+
+    BreakfastFoodItemIDData, LunchFoodItemIDdata, DinnerFoodItemIDdata = meal_food_data()
+
+    BreakfastNutrition = BreakfastFoodItemIDData
+    LunchNutrition = LunchFoodItemIDdata
+    DinnerNutrition = DinnerFoodItemIDdata
+
+    BreakfastFoodItemIDData=BreakfastFoodItemIDData.to_numpy()
+    DinnerFoodItemIDdata=DinnerFoodItemIDdata.to_numpy()
+    LunchFoodItemIDdata=LunchFoodItemIDdata.to_numpy()
+
+    brklbl = breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastNutrition)
+    print("--------------------------------------------------------------------")
+
+    lnchlbl = lunch_cluster_food(LunchFoodItemIDdata, LunchNutrition)
+    print("--------------------------------------------------------------------")
+
+    dnrlbl = dinner_cluster_food(DinnerFoodItemIDdata, DinnerNutrition)
+    print("--------------------------------------------------------------------")
+
+    ## CREATE TRAIN SET FOR MAINTENANCE
+    mealTime=int(e7.get())
+    if mealTime==1:
+        # Breakfast
+        # print(BreakfastNutrition)
+
+        labels = np.array(BreakfastNutrition['KMCluster'])
+        features= BreakfastNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Fibre','Sugars'], axis = 1)
+        feature_list = list(features.columns)
+        features = np.array(features)
+
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+        print('Training Features Shape:', train_features.shape)
+        print('Training Labels Shape:', train_labels.shape)
+        print('Testing Features Shape:', test_features.shape)
+        print('Testing Labels Shape:', test_labels.shape)
+
+        # #Create a Gaussian Classifier
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+        # #Train the model using the training sets y_pred=clf.predict(X_test)
+        clf.fit(train_features, train_labels)
+
+        y_pred=clf.predict(test_features)
+
+        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+        # print(y_pred)
+
+        print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (BREAKFAST)')
+        for idx, row in BreakfastNutrition.iterrows():
+            if row['KMCluster']==2:
+                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+
+        # abc=clf.predict([[435,9.70,9.50,55.10,0]])
+        # print(abc)
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+    if mealTime==2:
+        # Lunch
+        # print(LunchNutrition)
+
+        labels = np.array(LunchNutrition['KMCluster'])
+        features= LunchNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Fibre','Sugars'], axis = 1)
+        feature_list = list(features.columns)
+        features = np.array(features)
+
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+        print('Training Features Shape:', train_features.shape)
+        print('Training Labels Shape:', train_labels.shape)
+        print('Testing Features Shape:', test_features.shape)
+        print('Testing Labels Shape:', test_labels.shape)
+
+        # #Create a Gaussian Classifier
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+        # #Train the model using the training sets y_pred=clf.predict(X_test)
+        clf.fit(train_features, train_labels)
+
+        y_pred=clf.predict(test_features)
+
+        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+        # print(y_pred)
+
+        print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (LUNCH)')
+        for idx, row in LunchNutrition.iterrows():
+            if row['KMCluster']==0 or row['KMCluster']==1:
+                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+    if mealTime==3:
+        # Dinner
+        # print(DinnerNutrition)
+
+        labels = np.array(DinnerNutrition['KMCluster'])
+        features= DinnerNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Fibre','Sugars'], axis = 1)
+        feature_list = list(features.columns)
+        features = np.array(features)
+
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+        print('Training Features Shape:', train_features.shape)
+        print('Training Labels Shape:', train_labels.shape)
+        print('Testing Features Shape:', test_features.shape)
+        print('Testing Labels Shape:', test_labels.shape)
+
+        # #Create a Gaussian Classifier
+        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+        # #Train the model using the training sets y_pred=clf.predict(X_test)
+        clf.fit(train_features, train_labels)
+
+        y_pred=clf.predict(test_features)
+
+        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+        # print(y_pred)
+
+        print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (DINNER)')
+        for idx, row in DinnerNutrition.iterrows():
+            if row['KMCluster']==1 or row['KMCluster']==2:
+                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+
+        # Get numerical feature importances
+        importances = list(clf.feature_importances_)
+        # List of tuples with variable and importance
+        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+        # Sort the feature importances by most important first
+        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+        # Print out the feature and importances 
+        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+def Predict():
+    print_prediction_input()
+
+    FoodItemIDData = food_data()
+
+    FoodNutrion = FoodItemIDData
+
+    FoodItemIDData=FoodItemIDData.to_numpy()
+  
+    foodlbs = cluster_food(FoodItemIDData, FoodNutrion)
+
+    labels = np.array(FoodNutrion['KMCluster'])
+    features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','Fibre','VitaminD','Sugars'], axis = 1)
+    feature_list = list(features.columns)
+    features = np.array(features)
+
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    print('Training Features Shape:', train_features.shape)
+    print('Training Labels Shape:', train_labels.shape)
+    print('Testing Features Shape:', test_features.shape)
+    print('Testing Labels Shape:', test_labels.shape)
+
+    # #Create a Gaussian Classifier
+    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+
+    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    clf.fit(train_features, train_labels)
+
+    y_pred=clf.predict(test_features)
+
+    print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+    print(y_pred)
+
+    y_pred=clf.predict([[float(e8.get()),float(e9.get()), float(e10.get()), float(e11.get())]])
+
+    # print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+
+    print('PREDICTION RESULT :: ')
+    if y_pred==0:
+        print('FIT FOR WEIGHT GAIN PLAN')
+    if y_pred==1 or y_pred==2:
+        print('FIT FOR WEIGHT LOSS or MAINTENANCE PLAN')
+
+    # Get numerical feature importances
+    importances = list(clf.feature_importances_)
+    # List of tuples with variable and importance
+    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+    # Sort the feature importances by most important first
+    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+    # Print out the feature and importances 
+    [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
 
 if __name__ == '__main__':
     main_win = Tk()
@@ -367,6 +805,10 @@ if __name__ == '__main__':
     Label(main_win,text="Activity level").grid(row=4,column=0,sticky=W,pady=4)
     Label(main_win,text="Veg/Non-veg (1/0)").grid(row=5,column=0,sticky=W,pady=4)
     Label(main_win,text="Breakfast/Lunch/Dinner (1/2/3)").grid(row=6,column=0,sticky=W,pady=4)
+    Label(main_win,text="Calories").grid(row=7,column=0,sticky=W,pady=4)
+    Label(main_win,text="Fat").grid(row=8,column=0,sticky=W,pady=4)
+    Label(main_win,text="Protein").grid(row=9,column=0,sticky=W,pady=4)
+    Label(main_win,text="Carb").grid(row=10,column=0,sticky=W,pady=4)
 
     e1 = Entry(main_win)
     e2 = Entry(main_win)
@@ -375,6 +817,10 @@ if __name__ == '__main__':
     e5 = Entry(main_win)
     e6 = Entry(main_win)
     e7 = Entry(main_win)
+    e8 = Entry(main_win)
+    e9 = Entry(main_win)
+    e10 = Entry(main_win)
+    e11 = Entry(main_win)
 
     e1.grid(row=0, column=1)
     e2.grid(row=1, column=1)
@@ -383,13 +829,18 @@ if __name__ == '__main__':
     e5.grid(row=4, column=1)
     e6.grid(row=5, column=1)
     e7.grid(row=6, column=1)
+    e8.grid(row=7, column=1)
+    e9.grid(row=8, column=1)
+    e10.grid(row=9, column=1)
+    e11.grid(row=10, column=1)
 
     # Button(main_win,text='Quit',command=main_win.quit).grid(row=5,column=0,sticky=W,pady=4)
-    # Button(main_win,text='Weight Loss',command=Weight_Loss).grid(row=1,column=4,sticky=W,pady=4)
-    # Button(main_win,text='Weight Gain',command=Weight_Gain).grid(row=2,column=4,sticky=W,pady=4)
-    # Button(main_win,text='Healthy',command=Healthy).grid(row=3,column=4,sticky=W,pady=4)
+    Button(main_win,text='Maintenance',command=Maintenance_Plan).grid(row=1,column=4,sticky=W,pady=4)
     Button(main_win,text='Weight Loss',command=Weight_Loss_Plan).grid(row=3,column=4,sticky=W,pady=4)
-    main_win.geometry("550x220")
+    Button(main_win,text='Weight Gain',command=Weight_Gain_Plan).grid(row=2,column=4,sticky=W,pady=4)
+    Button(main_win,text='Predict',command=Predict).grid(row=4,column=4,sticky=W,pady=4)
+
+    main_win.geometry("550x360")
     main_win.wm_title("DIET RECOMMENDATION SYSTEM")
 
     main_win.mainloop()
