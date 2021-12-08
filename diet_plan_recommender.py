@@ -11,6 +11,11 @@ from sklearn.metrics import silhouette_score
 from sklearn import metrics
 from sklearn.tree import export_graphviz
 import pydot
+import streamlit as st
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, CustomJS
+from bokeh.models import DataTable, TableColumn
+from streamlit_bokeh_events import streamlit_bokeh_events
 
 # read dataset
 data=pd.read_csv('food.csv')
@@ -21,6 +26,40 @@ LunchFoodDataNumpy=LunchFoodData.to_numpy()
 DinnerFoodData=data['Dinner']
 DinnerFoodDataNumpy=DinnerFoodData.to_numpy()
 FoodItemsData=data['Food_items']
+
+result_df = pd.DataFrame()
+
+def show():
+    print(result_df)
+    # create plot
+    cds = ColumnDataSource(result_df)
+    columns = [
+    TableColumn(field="Food_items"),
+    TableColumn(field="Calories"),
+    TableColumn(field="Fats"),
+    TableColumn(field="Proteins"),
+    TableColumn(field="Carbohydrates"),
+    TableColumn(field="Fibre"),
+    TableColumn(field="KMCluster"),
+    ]
+
+    # define events
+    cds.selected.js_on_change(
+    "indices",
+    CustomJS(
+            args=dict(source=cds),
+            code="""
+            document.dispatchEvent(
+            new CustomEvent("INDEX_SELECT", {detail: {data: source.selected.indices}})
+            )
+            """
+    )
+    )
+    p = DataTable(source=cds, columns=columns)
+    result = streamlit_bokeh_events(bokeh_plot=p, events="INDEX_SELECT", key="foo", refresh_on_update=False, debounce_time=0, override_height=100)
+    if result:
+            if result.get("INDEX_SELECT"):
+                    st.write(result_df.iloc[result.get("INDEX_SELECT")["data"]])      
 
 def food_data():
     FoodsData = data
@@ -33,29 +72,29 @@ def food_data():
     return FoodItemIDData
 
 def print_user_input():
-    print("\n Age: %s\n Gender: %s\n Weight: %s kg\n Height: %s cm\n Activity level: %s\n Veg or NonVeg: %s\n " % (e1.get(), e2.get(),e3.get(), e4.get(), e5.get(), e6.get()))
+    print("\n Age: %s\n Gender: %s\n Weight: %s kg\n Height: %s cm\n Activity level: %s\n" % (age, gender, weight, height, activity_level))
 
 def print_prediction_input():
-    print("\n Calories: %s\n Fat: %s g\n Protein: %s g\n Carb: %s g " % (e8.get(),e9.get(), e10.get(), e11.get()))
+    print("\n Calories: %s\n Fat: %s g\n Protein: %s g\n Carb: %s g " % (age,age, age, age))
 
 def calc_BMI():
     # tinh BMI
-    age=int(e1.get())
-    weight=float(e3.get())
-    height=float(e4.get())
-    BMI = weight/((height/100)**2)
+    Age=int(age)
+    Weight=float(weight)
+    Height=float(height)
+    BMI = Weight/((Height/100)**2)
 
-    print("Your body mass index is: ", BMI)
+    st.write("Your body mass index is: ", BMI)
     if ( BMI < 16):
-        print("severely underweight")
+        st.write("Your body condition is **Severely Underweight**")
     elif ( BMI >= 16 and BMI < 18.5):
-        print("underweight")
+        st.write("Your body condition is **Underweight**")
     elif ( BMI >= 18.5 and BMI < 25):
-        print("Healthy")
+        st.write("Your body condition is **Healthy**")
     elif ( BMI >= 25 and BMI < 30):
-        print("overweight")
+        st.write("**overweight**")
     elif ( BMI >=30):
-        print("severely overweight")
+        st.write("Your body condition is Severely Overweight")
 
     return BMI
 
@@ -63,20 +102,30 @@ def calc_TDEE():
     # tinh BMR
     # Nam - BMR = 10W + 6.25H – 5A + 5
     # Nu - BMR = 10W + 6.25H – 5A - 161
-    age=int(e1.get())
-    weight=float(e3.get())
-    height=float(e4.get())
-    gender=int(e2.get())
-    activity_level=float(e5.get())
+    Age=int(age)
+    Weight=float(weight)
+    Height=float(height)
+    Gender=gender
+    
+    if activity_level == 'Sedentary':
+        Activity_Level1 = 1.2
+    if activity_level == 'Lightly active':
+        Activity_Level1 = 1.375
+    if activity_level == 'Moderately active':
+        Activity_Level1 = 1.55
+    if activity_level == 'Very active':
+        Activity_Level1 = 1.725
+    if activity_level == 'Extra active':
+        Activity_Level1 = 1.9
 
-    if (gender == 1):
-        BMR = 10*weight + 6.25*height - 5*age + 5
-    elif (gender == 0):
-        BMR = 10*weight + 6.25*height - 5*age - 161
+    if (gender == 'Male'):
+        BMR = 10*Weight + 6.25*Height - 5*Age + 5
+    elif (gender == 'Female'):
+        BMR = 10*Weight + 6.25*Height - 5*Age - 161
 
-    TDEE = BMR * activity_level
-    print("Your Basal metabolic rate is: ", BMR)
-    print("Your Total Daily Energy Expenditure is: ", TDEE)
+    TDEE = BMR * Activity_Level1
+    st.write("Your Basal metabolic rate is: ", BMR, 'calories')
+    st.write("**Your Total Daily Energy Expenditure is: ", TDEE , 'calories**')
 
     return TDEE
 
@@ -287,6 +336,7 @@ def cluster_food(FoodItemIDData, FoodItem_Test):
 
 def Weight_Loss_Plan():
     print_user_input()
+    global result_df
 
     BMI = calc_BMI()
     TDEE = calc_TDEE()
@@ -318,8 +368,7 @@ def Weight_Loss_Plan():
     print("--------------------------------------------------------------------")
 
     ## CREATE TRAIN SET FOR WEIGHT LOSS
-    mealTime=int(e7.get())
-    if mealTime==1:
+    if meal_time=='Breakfast':
         # Breakfast
         # print(BreakfastNutrition)
 
@@ -345,10 +394,19 @@ def Weight_Loss_Plan():
         print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
         # print(y_pred)
 
-        print ('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (BREAKFAST)')
+        rows_list = []
+        st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (BREAKFAST)')
         for idx, row in BreakfastNutrition.iterrows():
             if row['KMCluster']==0:
-                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+                # row = row.drop(['KMCluster'])
+                # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+                row = row[['Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
+                rows_list.append(row)
+                # print(row.to_frame().T)
+        df = pd.DataFrame(rows_list)
+        
+        result_df = df
+        st.dataframe(df)
 
         # abc=clf.predict([[435,9.70,9.50,55.10,0]])
         # print(abc)
@@ -361,9 +419,19 @@ def Weight_Loss_Plan():
         feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
-
         
-    if mealTime==2:
+
+        # selected_indices = st.multiselect('Select rows:', df.index)   
+        # selected_rows = df.loc[selected_indices]
+        # print('### Selected Rows', selected_rows)
+
+        # placeholder_c = st.empty()
+        # userNumCopper = placeholder_c.number_input('Enter number of Copper: ', min_value= 0)
+
+        # show(result_df)
+                         
+
+    if meal_time=='Lunch':
         # Lunch
         # print(LunchNutrition)
 
@@ -403,7 +471,7 @@ def Weight_Loss_Plan():
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
-    if mealTime==3:
+    if meal_time=='Dinner':
         # Dinner
         # print(DinnerNutrition)
 
@@ -469,8 +537,7 @@ def Weight_Gain_Plan():
     print("--------------------------------------------------------------------")
 
     ## CREATE TRAIN SET FOR WEIGHT GAIN
-    mealTime=int(e7.get())
-    if mealTime==1:
+    if meal_time=='Breakfast':
         # Breakfast
         # print(BreakfastNutrition)
         labels = np.array(BreakfastNutrition['KMCluster'])
@@ -512,7 +579,7 @@ def Weight_Gain_Plan():
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
-    if mealTime==2:
+    if meal_time=='Lunch':
         # Lunch
         # print(LunchNutrition)
 
@@ -552,7 +619,7 @@ def Weight_Gain_Plan():
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
-    if mealTime==3:
+    if meal_time=='Dinner':
         # Dinner
         # print(DinnerNutrition)
 
@@ -618,8 +685,7 @@ def Maintenance_Plan():
     print("--------------------------------------------------------------------")
 
     ## CREATE TRAIN SET FOR MAINTENANCE
-    mealTime=int(e7.get())
-    if mealTime==1:
+    if meal_time=='Breakfast':
         # Breakfast
         # print(BreakfastNutrition)
 
@@ -662,7 +728,7 @@ def Maintenance_Plan():
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
-    if mealTime==2:
+    if meal_time=='Lunch':
         # Lunch
         # print(LunchNutrition)
 
@@ -702,7 +768,7 @@ def Maintenance_Plan():
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
-    if mealTime==3:
+    if meal_time=='Dinner':
         # Dinner
         # print(DinnerNutrition)
 
@@ -794,55 +860,197 @@ def Predict():
     # Print out the feature and importances 
     [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
+ 
 
-if __name__ == '__main__':
-    main_win = Tk()
+st.set_page_config(layout="centered")
     
-    Label(main_win,text="Age").grid(row=0,column=0,sticky=W,pady=4)
-    Label(main_win,text="Gender (1/0)").grid(row=1,column=0,sticky=W,pady=4)
-    Label(main_win,text="Weight (in kg)").grid(row=2,column=0,sticky=W,pady=4)
-    Label(main_win,text="Height (in cm)").grid(row=3,column=0,sticky=W,pady=4)
-    Label(main_win,text="Activity level").grid(row=4,column=0,sticky=W,pady=4)
-    Label(main_win,text="Veg/Non-veg (1/0)").grid(row=5,column=0,sticky=W,pady=4)
-    Label(main_win,text="Breakfast/Lunch/Dinner (1/2/3)").grid(row=6,column=0,sticky=W,pady=4)
-    Label(main_win,text="Calories").grid(row=7,column=0,sticky=W,pady=4)
-    Label(main_win,text="Fat").grid(row=8,column=0,sticky=W,pady=4)
-    Label(main_win,text="Protein").grid(row=9,column=0,sticky=W,pady=4)
-    Label(main_win,text="Carb").grid(row=10,column=0,sticky=W,pady=4)
+header = st.container()
+user_input = st.container()
+table_result = st.container()
 
-    e1 = Entry(main_win)
-    e2 = Entry(main_win)
-    e3 = Entry(main_win)
-    e4 = Entry(main_win)
-    e5 = Entry(main_win)
-    e6 = Entry(main_win)
-    e7 = Entry(main_win)
-    e8 = Entry(main_win)
-    e9 = Entry(main_win)
-    e10 = Entry(main_win)
-    e11 = Entry(main_win)
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+        width: 500px;
+        
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
+        width: 500px;
+        margin-left: -500px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-    e1.grid(row=0, column=1)
-    e2.grid(row=1, column=1)
-    e3.grid(row=2, column=1)
-    e4.grid(row=3, column=1)
-    e5.grid(row=4, column=1)
-    e6.grid(row=5, column=1)
-    e7.grid(row=6, column=1)
-    e8.grid(row=7, column=1)
-    e9.grid(row=8, column=1)
-    e10.grid(row=9, column=1)
-    e11.grid(row=10, column=1)
+st.markdown(
+    """
+    <style>
+    .css-1d391kg {
+        padding-left: 52px;
+        padding-right: 52px;
+        # padding-top: 43px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-    # Button(main_win,text='Quit',command=main_win.quit).grid(row=5,column=0,sticky=W,pady=4)
-    Button(main_win,text='Maintenance',command=Maintenance_Plan).grid(row=1,column=4,sticky=W,pady=4)
-    Button(main_win,text='Weight Loss',command=Weight_Loss_Plan).grid(row=3,column=4,sticky=W,pady=4)
-    Button(main_win,text='Weight Gain',command=Weight_Gain_Plan).grid(row=2,column=4,sticky=W,pady=4)
-    Button(main_win,text='Predict',command=Predict).grid(row=4,column=4,sticky=W,pady=4)
+st.markdown(
+    """
+    <style>
+    .css-177yq5e ul {
+        margin-bottom: 0px;
+        margin-left: 20px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-    main_win.geometry("550x360")
-    main_win.wm_title("DIET RECOMMENDATION SYSTEM")
+with header:
+    st.sidebar.title('Diet Food Recommendation System')
 
-    main_win.mainloop()
+with user_input:
+    # sel_col, disp_col = st.columns([6,1])
+    st.sidebar.subheader("How old are you?")
+    age = st.sidebar.text_input('Enter your age!', '20')
 
+    st.sidebar.subheader("What is your gender?")
+    gender = st.sidebar.selectbox('Choose your gender!', options=['Male','Female'])
 
+    st.sidebar.subheader("How much do you weigh?")
+    weight = st.sidebar.text_input('Enter your weight in kg!', '60')
+
+    st.sidebar.subheader("How tall are you?")
+    height = st.sidebar.text_input('Enter your height in cm!', '170')
+
+    st.sidebar.subheader("What is your activity level?")
+
+    st.sidebar.markdown('* **Sedentary** (little or no exercise, desk job)')
+    st.sidebar.markdown('* **Lightly active** (light exercise/sports 1-3 days/week)')
+    st.sidebar.markdown('* **Moderately active** (moderate exercise 6-7 days)')
+    st.sidebar.markdown('* **Very active** (hard exercise every day, or 2 xs/day)')
+    st.sidebar.markdown('* **Extra active** (hard exercise 2 or more times per day)')
+
+    activity_level = st.sidebar.select_slider('Choose your activity level!', options=[
+        'Sedentary',
+        'Lightly active',
+        'Moderately active',
+        'Very active',
+        'Extra active'])
+
+    st.sidebar.subheader("What is your favorite meal?")
+    meal_time = st.sidebar.selectbox('Choose your desired meal time!', options=[
+        'Breakfast',
+        'Lunch',
+        'Dinner',])
+
+    st.sidebar.subheader("What is your diet plan?")
+    diet_plan = st.sidebar.radio(
+     "Choose your diet plan!",
+     ('Weight Loss', 'Weight Gain', 'Maintenance'))
+
+    st.sidebar.subheader("Are you ready?")
+    if diet_plan == 'Weight Loss':
+        button = st.sidebar.button('Do it now!', on_click=Weight_Loss_Plan)
+    elif diet_plan == 'Weight Gain':
+        button = st.sidebar.button('Do it now!', on_click=Weight_Gain_Plan)
+    elif diet_plan == 'Maintenance':
+        button = st.sidebar.button('Do it now!', on_click=Maintenance_Plan)
+
+  
+
+    # if button == 1:
+    #     selected_indices = st.multiselect('Select rows:', result.index)   
+    #     selected_rows = result.loc[selected_indices]
+    #     print('### Selected Rows', selected_rows)
+
+    # placeholder_c = st.empty()
+    # userNumCopper = placeholder_c.number_input('Enter number of Copper: ', min_value= 0)
+
+with table_result:
+    if button == 1:
+        # show()
+        print(result_df)
+        # create plot
+        cds = ColumnDataSource(result_df)
+        columns = [
+        TableColumn(field="Food_items"),
+        TableColumn(field="Calories"),
+        TableColumn(field="Fats"),
+        TableColumn(field="Proteins"),
+        TableColumn(field="Carbohydrates"),
+        TableColumn(field="Fibre"),
+        TableColumn(field="KMCluster"),
+        ]
+
+        # define events
+        cds.selected.js_on_change(
+        "indices",
+        CustomJS(
+                args=dict(source=cds),
+                code="""
+                document.dispatchEvent(
+                new CustomEvent("INDEX_SELECT", {detail: {data: source.selected.indices}})
+                )
+                """
+        )
+        )
+        p = DataTable(source=cds, columns=columns)
+        result = streamlit_bokeh_events(bokeh_plot=p, events="INDEX_SELECT", key="foo", refresh_on_update=False, debounce_time=0, override_height=100)
+        if result:
+                if result.get("INDEX_SELECT"):
+                        st.write(result_df.iloc[result.get("INDEX_SELECT")["data"]])     
+    
+
+# if __name__ == '__main__':
+    # main_win = Tk()
+    
+    # Label(main_win,text="Age").grid(row=0,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Gender (1/0)").grid(row=1,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Weight (in kg)").grid(row=2,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Height (in cm)").grid(row=3,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Activity level").grid(row=4,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Veg/Non-veg (1/0)").grid(row=5,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Breakfast/Lunch/Dinner (1/2/3)").grid(row=6,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Calories").grid(row=7,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Fat").grid(row=8,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Protein").grid(row=9,column=0,sticky=W,pady=4)
+    # Label(main_win,text="Carb").grid(row=10,column=0,sticky=W,pady=4)
+
+    # e1 = Entry(main_win)
+    # e2 = Entry(main_win)
+    # e3 = Entry(main_win)
+    # e4 = Entry(main_win)
+    # e5 = Entry(main_win)
+    # e6 = Entry(main_win)
+    # e7 = Entry(main_win)
+    # e8 = Entry(main_win)
+    # e9 = Entry(main_win)
+    # e10 = Entry(main_win)
+    # e11 = Entry(main_win)
+
+    # e1.grid(row=0, column=1)
+    # e2.grid(row=1, column=1)
+    # e3.grid(row=2, column=1)
+    # e4.grid(row=3, column=1)
+    # e5.grid(row=4, column=1)
+    # e6.grid(row=5, column=1)
+    # e7.grid(row=6, column=1)
+    # e8.grid(row=7, column=1)
+    # e9.grid(row=8, column=1)
+    # e10.grid(row=9, column=1)
+    # e11.grid(row=10, column=1)
+
+    # # Button(main_win,text='Quit',command=main_win.quit).grid(row=5,column=0,sticky=W,pady=4)
+    # Button(main_win,text='Maintenance',command=Maintenance_Plan).grid(row=1,column=4,sticky=W,pady=4)
+    # Button(main_win,text='Weight Loss',command=Weight_Loss_Plan).grid(row=3,column=4,sticky=W,pady=4)
+    # Button(main_win,text='Weight Gain',command=Weight_Gain_Plan).grid(row=2,column=4,sticky=W,pady=4)
+    # Button(main_win,text='Predict',command=Predict).grid(row=4,column=4,sticky=W,pady=4)
+
+    # main_win.geometry("550x360")
+    # main_win.wm_title("DIET RECOMMENDATION SYSTEM")
+
+    # main_win.mainloop()
