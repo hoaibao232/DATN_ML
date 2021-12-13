@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from typing import TypedDict
 import pandas as pd
 import numpy as np
@@ -16,6 +17,9 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, CustomJS
 from bokeh.models import DataTable, TableColumn
 from streamlit_bokeh_events import streamlit_bokeh_events
+import streamlit.components.v1 as components
+import jinja2
+
 
 # read dataset
 data=pd.read_csv('food.csv')
@@ -181,9 +185,9 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
     
     #Importing the standard scaler module and applying it on continuous variables
     BreakfastDatacalorie=BreakfastFoodItemIDData[0:,2:len(BreakfastFoodItemIDData)] #nutrion data
+    # BreakfastDatacalorie=BreakfastDatacalorie[:, [0,1,2,7,8]]
     S = StandardScaler()
     breakfast_scaled_data = S.fit_transform(BreakfastDatacalorie)
-    # print(breakfast_scaled_data)
 
     # First, test Kmeans with clusters=3
     k_means_breakfast = KMeans(n_clusters=3, random_state=0)
@@ -197,9 +201,11 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
         KM_Breakfast = KMeans(n_clusters=i)
         KM_Breakfast.fit(breakfast_scaled_data)
         wss.append(KM_Breakfast.inertia_)
-    print(wss)
+    st.write(wss)
+    fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
     # plt.show()
+    st.pyplot(fig)
 
     #Checking for n-clusters=3
     k_means_three_breakfast = KMeans(n_clusters = 3)
@@ -208,14 +214,15 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
     labels_three = k_means_three_breakfast.labels_
     # print(labels_three)
     #Calculating silhouette_score for k=3
-    print(silhouette_score(breakfast_scaled_data, labels_three))
+    st.write(silhouette_score(breakfast_scaled_data, labels_three))
 
     # Overview data in clusters
     length = len(BreakfastFoodItemIDData) + 2
     BreakfastFoodItem_Test['KMCluster'] = brklbl
-    clust_profile=BreakfastFoodItem_Test.iloc[:,2:length].astype(float).groupby(BreakfastFoodItem_Test['KMCluster']).mean()
+    clust_profile=BreakfastFoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(BreakfastFoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=BreakfastFoodItem_Test.KMCluster.value_counts().sort_index()
-    print(clust_profile)
+    clust = pd.DataFrame(clust_profile)
+    st.dataframe(clust)
 
     return brklbl
 
@@ -236,22 +243,24 @@ def lunch_cluster_food(LunchFoodItemIDdata, LunchFoodItem_Test):
         KM_Lunch = KMeans(n_clusters=i)
         KM_Lunch.fit(lunch_scaled_data)
         wss.append(KM_Lunch.inertia_)
-    print(wss)
+    st.write(wss)
+    fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
-    # plt.show()
+    st.pyplot(fig)
 
     k_means_three_lunch = KMeans(n_clusters = 3)
     k_means_three_lunch.fit(lunch_scaled_data)
     print('WSS for K=3:', k_means_three_lunch.inertia_)
     labels_three = k_means_three_lunch.labels_
     # print(labels_three)
-    print(silhouette_score(lunch_scaled_data, labels_three))
+    st.write(silhouette_score(lunch_scaled_data, labels_three))
 
     length = len(LunchFoodItemIDdata) + 2
     LunchFoodItem_Test['KMCluster'] = lnchlbl
-    clust_profile=LunchFoodItem_Test.iloc[:,2:length].astype(float).groupby(LunchFoodItem_Test['KMCluster']).mean()
+    clust_profile=LunchFoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(LunchFoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=LunchFoodItem_Test.KMCluster.value_counts().sort_index()
-    print(clust_profile)
+    clust = pd.DataFrame(clust_profile)
+    st.dataframe(clust)
 
     return lnchlbl
 
@@ -272,22 +281,24 @@ def dinner_cluster_food(DinnerFoodItemIDdata, DinnerFoodItem_Test):
         KM_Dinner = KMeans(n_clusters=i)
         KM_Dinner.fit(dinner_scaled_data)
         wss.append(KM_Dinner.inertia_)
-    print(wss)
+    st.write(wss)
+    fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
-    # plt.show()
+    st.pyplot(fig)
 
     k_means_three_dinner = KMeans(n_clusters=3)
     k_means_three_dinner.fit(dinner_scaled_data)
     print('WSS for K=3:', k_means_three_dinner.inertia_)
     labels_three = k_means_three_dinner.labels_
     # print(labels_three)
-    print(silhouette_score(dinner_scaled_data, labels_three))
+    st.write(silhouette_score(dinner_scaled_data, labels_three))
 
     length = len(DinnerFoodItemIDdata) + 2
     DinnerFoodItem_Test['KMCluster'] = dnrlbl
-    clust_profile=DinnerFoodItem_Test.iloc[:,2:length].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
+    clust_profile=DinnerFoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=DinnerFoodItem_Test.KMCluster.value_counts().sort_index()
-    print(clust_profile)
+    clust = pd.DataFrame(clust_profile)
+    st.dataframe(clust)
 
     return dnrlbl
 
@@ -357,15 +368,15 @@ def Weight_Loss_Plan():
   
     brklbl = breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastNutrition)
 
-    print("--------------------------------------------------------------------")
+    st.write("--------------------------------------------------------------------")
 
     lnchlbl = lunch_cluster_food(LunchFoodItemIDdata, LunchNutrition)
 
-    print("--------------------------------------------------------------------")
+    st.write("--------------------------------------------------------------------")
 
     dnrlbl = dinner_cluster_food(DinnerFoodItemIDdata, DinnerNutrition)
     
-    print("--------------------------------------------------------------------")
+    st.write("--------------------------------------------------------------------")
 
     ## CREATE TRAIN SET FOR WEIGHT LOSS
     if meal_time=='Breakfast':
@@ -403,13 +414,21 @@ def Weight_Loss_Plan():
                 row = row[['Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
                 rows_list.append(row)
                 # print(row.to_frame().T)
+
         df = pd.DataFrame(rows_list)
+        df.insert(loc = 0,column = 'PPA',value = '')
+
+        array_test = df.to_numpy()
         
         result_df = df
         st.dataframe(df)
 
         # abc=clf.predict([[435,9.70,9.50,55.10,0]])
         # print(abc)
+
+        html = df.to_html(classes=["table-bordered", "table-striped", "table-hover"])
+
+        lenn = len(rows_list)
 
         # Get numerical feature importances
         importances = list(clf.feature_importances_)
@@ -420,16 +439,80 @@ def Weight_Loss_Plan():
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
         
+        i = 0
 
-        # selected_indices = st.multiselect('Select rows:', df.index)   
-        # selected_rows = df.loc[selected_indices]
-        # print('### Selected Rows', selected_rows)
+        html_string = f'''
+        <center><h1>GeeksforGeeks</h1></center>
+        <ul id="myList"></ul>
+        
+        <script language="javascript">
 
-        # placeholder_c = st.empty()
-        # userNumCopper = placeholder_c.number_input('Enter number of Copper: ', min_value= 0)
+            var list = document.getElementById("myList");
+            
+            for({i}=0; i<{lenn}; {i}++) {{
+                var li = document.createElement("li");
+                li.innerHTML = {array_test[i]};
+                console.log(item);
+                list.appendChild(li);
+            }}
+        </script>
+       '''
 
-        # show(result_df)
-                         
+        # Generate HTML from template.
+        template = jinja2.Template("""<!DOCTYPE html>
+            <html>
+
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width">
+                <title>Demo</title>
+                <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+                <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+                </head>
+
+                <body>
+
+                    {{ dataframe }}
+
+                </body>
+
+                <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+                <script defer type="text/javascript">
+                    let myTable = new simpleDatatables.DataTable("#myTable", {paging:false});
+              
+                   
+                        var $rows = $('#myTable tr');
+                        console.log($rows.length)
+                        for (var i = 0; i < $rows.length; i++) {
+                            var checkbox = document.createElement("INPUT"); //Added for checkbox
+                            checkbox.type = "checkbox"; //Added for checkbox
+                            $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
+                        }
+
+                </script>
+            </html>"""
+                                    )
+
+        output_html = template.render(dataframe=df.to_html(table_id="myTable"))
+
+        components.html(output_html,800,1300)  # JavaScript works
+
+        # components.html(html,700,1300)   
+
+        st.markdown(df.to_html(classes='table table-striped'), unsafe_allow_html=True)  # JavaScript doesn't work
+
+            # var number = {rows_list[0]};
+            # document.getElementById("myText").innerHTML = number;
+
+            # for(var i=0; i<{rows_list}.length; i++) {{
+            #     console.log(rows_list[i])
+            #     }}   
+            #
+
+          # $(document).ready(function(){
+                    # $('.stDataFrame').DataTable();
+                    # });  
 
     if meal_time=='Lunch':
         # Lunch
@@ -456,11 +539,14 @@ def Weight_Loss_Plan():
 
         print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
         # print(y_pred)
-
-        print ('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (LUNCH)')
+        
+        rows_list = []
+        st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (LUNCH)')
         for idx, row in LunchNutrition.iterrows():
             if row['KMCluster']==1:
-                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+                # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+                row = row[['Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
+                rows_list.append(row)
 
         # Get numerical feature importances
         importances = list(clf.feature_importances_)
@@ -470,6 +556,13 @@ def Weight_Loss_Plan():
         feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+        df = pd.DataFrame(rows_list)
+
+        array_test = df.to_numpy()
+        
+        result_df = df
+        st.dataframe(df)
 
     if meal_time=='Dinner':
         # Dinner
@@ -497,10 +590,13 @@ def Weight_Loss_Plan():
         print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
         # print(y_pred)
 
-        print ('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (DINNER)')
+        rows_list = []
+        st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (DINNER)')
         for idx, row in DinnerNutrition.iterrows():
             if row['KMCluster']==1:
-                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+                # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
+                row = row[['Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
+                rows_list.append(row)
 
         # Get numerical feature importances
         importances = list(clf.feature_importances_)
@@ -510,6 +606,13 @@ def Weight_Loss_Plan():
         feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
         # Print out the feature and importances 
         [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+        df = pd.DataFrame(rows_list)
+
+        array_test = df.to_numpy()
+        
+        result_df = df
+        st.dataframe(df)
 
 def Weight_Gain_Plan():
     print_user_input()
@@ -970,40 +1073,54 @@ with user_input:
     # placeholder_c = st.empty()
     # userNumCopper = placeholder_c.number_input('Enter number of Copper: ', min_value= 0)
 
-with table_result:
-    if button == 1:
-        # show()
-        print(result_df)
-        # create plot
-        cds = ColumnDataSource(result_df)
-        columns = [
-        TableColumn(field="Food_items"),
-        TableColumn(field="Calories"),
-        TableColumn(field="Fats"),
-        TableColumn(field="Proteins"),
-        TableColumn(field="Carbohydrates"),
-        TableColumn(field="Fibre"),
-        TableColumn(field="KMCluster"),
-        ]
+# with table_result:
+#     if button == 1:
+#         # show()
+#         print(result_df)
+#         # create plot
+#         cds = ColumnDataSource(result_df)
+#         columns = [
+#         TableColumn(field="Food_items"),
+#         TableColumn(field="Calories"),
+#         TableColumn(field="Fats"),
+#         TableColumn(field="Proteins"),
+#         TableColumn(field="Carbohydrates"),
+#         TableColumn(field="Fibre"),
+#         TableColumn(field="KMCluster"),
+#         ]
 
-        # define events
-        cds.selected.js_on_change(
-        "indices",
-        CustomJS(
-                args=dict(source=cds),
-                code="""
-                document.dispatchEvent(
-                new CustomEvent("INDEX_SELECT", {detail: {data: source.selected.indices}})
-                )
-                """
-        )
-        )
-        p = DataTable(source=cds, columns=columns)
-        result = streamlit_bokeh_events(bokeh_plot=p, events="INDEX_SELECT", key="foo", refresh_on_update=False, debounce_time=0, override_height=100)
-        if result:
-                if result.get("INDEX_SELECT"):
-                        st.write(result_df.iloc[result.get("INDEX_SELECT")["data"]])     
+#         # define events
+#         cds.selected.js_on_change(
+#         "indices",
+#         CustomJS(
+#                 args=dict(source=cds),
+#                 code="""
+#                 document.dispatchEvent(
+#                 new CustomEvent("INDEX_SELECT", {detail: {data: source.selected.indices}})
+#                 )
+#                 """
+#         )
+#         )
+#         p = DataTable(source=cds, columns=columns)
+#         result = streamlit_bokeh_events(bokeh_plot=p, events="INDEX_SELECT", key="foo", refresh_on_update=False, debounce_time=0, override_height=100)
+#         if result:
+#                 if result.get("INDEX_SELECT"):
+#                         st.write(result_df.iloc[result.get("INDEX_SELECT")["data"]])     
     
+# html_string = '''
+# <h1>HTML string in RED</h1>
+
+# <script language="javascript">
+#   document.querySelector("h1").style.color = "red";
+#   console.log("Streamlit runs JavaScript");
+#   alert("Streamlit runs JavaScript");
+# </script>
+# '''
+
+# components.html(html_string)  # JavaScript works
+
+# st.markdown(html_string, unsafe_allow_html=True)  # JavaScript doesn't work
+
 
 # if __name__ == '__main__':
     # main_win = Tk()
