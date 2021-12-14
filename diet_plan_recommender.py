@@ -416,7 +416,8 @@ def Weight_Loss_Plan():
                 # print(row.to_frame().T)
 
         df = pd.DataFrame(rows_list)
-        df.insert(loc = 0,column = 'PPA',value = '')
+        df.insert(loc = 0,column = 'Select',value = '')
+        df.insert(loc = 1,column = 'Volume (g)',value = '100')
 
         array_test = df.to_numpy()
         
@@ -470,11 +471,18 @@ def Weight_Loss_Plan():
                 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
                 </head>
 
+
+                <h2>Total calories is <span id="calories">calories</span> g</h2>
+                <h2>Total fats is <span id="fats">fats</span> g</h2>
+                <h2>Total proteins is <span id="proteins">proteins</span> g</h2>
+                <h2>Total carbohydrates is <span id="carbohydrates">carbohydrates</span> g</h2>
+
                 <body>
 
                     {{ dataframe }}
-
+        
                 </body>
+
 
                 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
@@ -486,9 +494,116 @@ def Weight_Loss_Plan():
                         console.log($rows.length)
                         for (var i = 0; i < $rows.length; i++) {
                             var checkbox = document.createElement("INPUT"); //Added for checkbox
+                            checkbox.name = "case[]"
                             checkbox.type = "checkbox"; //Added for checkbox
                             $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
+                            $rows[i].cells[2].contentEditable = "true";
                         }
+                </script>
+
+                <script defer type="text/javascript">
+                    $("input[name='case[]']").click(function(){
+                        var values = new Array();
+                        $.each($("input[name='case[]']:checked"), function() {
+                            var data = $(this).parents('tr:eq(0)');
+                            values.push({ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(2)').text() , 'Calories':$(data).find('td:eq(3)').text(),
+                                            'Fats':$(data).find('td:eq(4)').text(), 'Proteins':$(data).find('td:eq(5)').text(),
+                                            'Carbohydrates':$(data).find('td:eq(6)').text(), 'Fibre':$(data).find('td:eq(7)').text(),
+                                            });               
+                        
+                                        
+                            console.log(values);
+                            var total_calories = 0;
+                            var total_fats = 0;
+                            var total_proteins = 0;
+                            var total_carbs = 0;
+                    
+                            for(var i = 0; i < values.length; i++) {
+                                total_calories = total_calories + parseFloat(values[i]['Calories']);
+                                total_fats = total_fats + parseFloat(values[i]['Fats']);
+                                total_proteins = total_proteins + parseFloat(values[i]['Proteins']);
+                                total_carbs = total_carbs + parseFloat(values[i]['Carbohydrates']);
+                            }
+
+                            document.getElementById("calories").innerHTML = total_calories.toString();
+                            document.getElementById("fats").innerHTML = total_fats.toString();
+                            document.getElementById("proteins").innerHTML = total_proteins.toString();
+                            document.getElementById("carbohydrates").innerHTML = total_carbs.toString();
+                        });
+                    });
+                </script>
+
+                <script defer type="text/javascript">
+                    var first_load = true;
+                    var ratio_old = 0;
+                    var calo_fixed = 0;
+                    var fats_fixed = 0;
+                    var proteins_fixed = 0;
+                    var carbohydrates_fixed = 0;
+                    var fibre_fixed = 0;
+
+                    var ratio = 0; 
+                    var calories = 0; 
+                    var fats = 0; 
+                    var proteins = 0; 
+                    var carbohydrates = 0; 
+                    var fibre = 0; 
+                    
+                   $("td[contenteditable]").on("input", function() {
+                        var values = new Array();
+                        
+                        var data = $(event.target).closest('tr');
+                        values.push({ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(2)').text() , 'Calories':$(data).find('td:eq(3)').text(),
+                                            'Fats':$(data).find('td:eq(4)').text(), 'Proteins':$(data).find('td:eq(5)').text(),
+                                            'Carbohydrates':$(data).find('td:eq(6)').text(), 'Fibre':$(data).find('td:eq(7)').text(),
+                                            });     
+
+                        
+                        console.log(first_load);
+                        
+                        if(first_load==true) {
+                            ratio_old = parseFloat(values[0]['Volumn']) / 100;
+                            calo_fixed = parseFloat(values[0]['Calories']);
+                            fats_fixed = parseFloat(values[0]['Fats']);
+                            proteins_fixed = parseFloat(values[0]['Proteins']);
+                            carbohydrates_fixed = parseFloat(values[0]['Carbohydrates']);
+                            fibre_fixed = parseFloat(values[0]['Fibre']);
+
+                            ratio = parseFloat(values[0]['Volumn']) / 100;
+                            calories = calo_fixed * ratio;
+                            fats = fats_fixed * ratio;
+                            proteins = proteins_fixed * ratio;
+                            carbohydrates = carbohydrates_fixed * ratio;
+                            fibre = fibre_fixed * ratio;
+                        }
+                        else {
+                            ratio_old1= ratio_old;
+                            calo_fixed1= calo_fixed;
+                            fats_fixed1= fats_fixed;
+                            proteins_fixed1= proteins_fixed;
+                            carbohydrates_fixed1= carbohydrates_fixed;
+                            fibre_fixed1= fibre_fixed;
+
+                            ratio = parseFloat(values[0]['Volumn']) / 100;
+                            calories = calo_fixed1 * ratio;
+                            fats = fats_fixed1 * ratio;
+                            proteins = proteins_fixed1 * ratio;
+                            carbohydrates = carbohydrates_fixed1 * ratio;
+                            fibre = fibre_fixed1 * ratio;
+                        }
+                        
+                        $("td[contenteditable]").on("blur", function() {
+                            $(data).find('td:eq(3)').text(calories.toFixed(1));
+                            $(data).find('td:eq(4)').text(fats.toFixed(1));
+                            $(data).find('td:eq(5)').text(proteins.toFixed(1));
+                            $(data).find('td:eq(6)').text(carbohydrates.toFixed(1));
+                            $(data).find('td:eq(7)').text(fibre.toFixed(1));
+                        });
+
+                        first_load = false;
+                        console.log(first_load);
+
+                    });
 
                 </script>
             </html>"""
@@ -498,22 +613,13 @@ def Weight_Loss_Plan():
 
         components.html(output_html,800,1300)  # JavaScript works
 
+        
+
         # components.html(html,700,1300)   
 
-        st.markdown(df.to_html(classes='table table-striped'), unsafe_allow_html=True)  # JavaScript doesn't work
+        # st.markdown(df.to_html(classes='table table-striped'), unsafe_allow_html=True)  # JavaScript doesn't work
 
-            # var number = {rows_list[0]};
-            # document.getElementById("myText").innerHTML = number;
-
-            # for(var i=0; i<{rows_list}.length; i++) {{
-            #     console.log(rows_list[i])
-            #     }}   
-            #
-
-          # $(document).ready(function(){
-                    # $('.stDataFrame').DataTable();
-                    # });  
-
+        
     if meal_time=='Lunch':
         # Lunch
         # print(LunchNutrition)
