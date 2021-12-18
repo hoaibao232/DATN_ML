@@ -291,18 +291,18 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
     S = StandardScaler()
     breakfast_scaled_data = S.fit_transform(BreakfastDatacalorie)
     breakfast_scaled_data1 = breakfast_scaled_data
-    breakfast_scaled_data2=breakfast_scaled_data
+    breakfast_scaled_data2 = breakfast_scaled_data
 
     # First, test Kmeans with clusters=3
-    k_means_breakfast = KMeans(n_clusters=4, random_state=0)
-    k_means_breakfast.fit(breakfast_scaled_data)
+    k_means_breakfast = KMeans(n_clusters=3, random_state=0)
+    k_means_breakfast.fit_predict(breakfast_scaled_data)
     brklbl=k_means_breakfast.labels_
 
     #To determine the optimum number of clusters, check the wss score for a given range of k
     wss =[] 
     for i in range(1,11):
-        KM_Breakfast = KMeans(n_clusters=i)
-        KM_Breakfast.fit(breakfast_scaled_data1)
+        KM_Breakfast = KMeans(n_clusters=i, random_state=0)
+        KM_Breakfast.fit_predict(breakfast_scaled_data1)
         wss.append(KM_Breakfast.inertia_)
     # st.write(wss)
     fig = plt.figure(figsize = (10, 5))
@@ -310,8 +310,8 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
     st.pyplot(fig)
 
     #Checking for n-clusters=3
-    k_means_three_breakfast = KMeans(n_clusters = 3)
-    k_means_three_breakfast.fit(breakfast_scaled_data2)
+    k_means_three_breakfast = KMeans(n_clusters = 3, random_state=0)
+    k_means_three_breakfast.fit_predict(breakfast_scaled_data2)
     print('WSS for K=3:', k_means_three_breakfast.inertia_)
     labels_three = k_means_three_breakfast.labels_
     #Calculating silhouette_score for k=3
@@ -334,22 +334,22 @@ def lunch_cluster_food(LunchFoodItemIDdata, LunchFoodItem_Test):
     L = StandardScaler()
     lunch_scaled_data = L.fit_transform(LunchDatacalorie)
 
-    k_means_lunch = KMeans(n_clusters=4, random_state=0)
-    k_means_lunch.fit(lunch_scaled_data)
+    k_means_lunch = KMeans(n_clusters=3, random_state=0)
+    k_means_lunch.fit_predict(lunch_scaled_data)
     lnchlbl=k_means_lunch.labels_
 
     wss =[] 
     for i in range(1,11):
-        KM_Lunch = KMeans(n_clusters=i)
-        KM_Lunch.fit(lunch_scaled_data)
+        KM_Lunch = KMeans(n_clusters=i, random_state=0)
+        KM_Lunch.fit_predict(lunch_scaled_data)
         wss.append(KM_Lunch.inertia_)
     # st.write(wss)
     fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
     st.pyplot(fig)
 
-    k_means_three_lunch = KMeans(n_clusters = 4)
-    k_means_three_lunch.fit(lunch_scaled_data)
+    k_means_three_lunch = KMeans(n_clusters = 3, random_state=0)
+    k_means_three_lunch.fit_predict(lunch_scaled_data)
     print('WSS for K=3:', k_means_three_lunch.inertia_)
     labels_three = k_means_three_lunch.labels_
     st.write(silhouette_score(lunch_scaled_data, labels_three))
@@ -371,28 +371,28 @@ def dinner_cluster_food(DinnerFoodItemIDdata, DinnerFoodItem_Test):
     dinner_scaled_data = D.fit_transform(DinnerDatacalorie)
 
     k_means_dinner = KMeans(n_clusters=3, random_state=0)
-    k_means_dinner.fit(dinner_scaled_data)
+    k_means_dinner.fit_predict(dinner_scaled_data)
     dnrlbl=k_means_dinner.labels_
 
     wss =[] 
     for i in range(1,11):
-        KM_Dinner = KMeans(n_clusters=i)
-        KM_Dinner.fit(dinner_scaled_data)
+        KM_Dinner = KMeans(n_clusters=i, random_state=0)
+        KM_Dinner.fit_predict(dinner_scaled_data)
         wss.append(KM_Dinner.inertia_)
     # st.write(wss)
     fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
     st.pyplot(fig)
 
-    k_means_three_dinner = KMeans(n_clusters=3)
-    k_means_three_dinner.fit(dinner_scaled_data)
+    k_means_three_dinner = KMeans(n_clusters=3, random_state=0)
+    k_means_three_dinner.fit_predict(dinner_scaled_data)
     print('WSS for K=3:', k_means_three_dinner.inertia_)
     labels_three = k_means_three_dinner.labels_
     st.write(silhouette_score(dinner_scaled_data, labels_three))
 
     length = len(DinnerFoodItemIDdata) + 2
     DinnerFoodItem_Test['KMCluster'] = dnrlbl
-    clust_profile=DinnerFoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
+    clust_profile=DinnerFoodItem_Test.iloc[:,[2,3,4,5,6,7,8,9,10,11,12]].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=DinnerFoodItem_Test.KMCluster.value_counts().sort_index()
     clust = pd.DataFrame(clust_profile)
     st.dataframe(clust)
@@ -403,42 +403,46 @@ def cluster_food(FoodItemIDData, FoodItem_Test):
     ###### K-MEANS FOR ALL FOOD
     
     #Importing the standard scaler module and applying it on continuous variables
-    BreakfastDatacalorie=FoodItemIDData[0:,2:len(FoodItemIDData)] #nutrion data
+    MealDatacalorie=FoodItemIDData[0:,2:len(FoodItemIDData)] #nutrion data
+    MealDatacalorie = MealDatacalorie[:, [0,1,2,7,8]]
+    print(MealDatacalorie)
     S = StandardScaler()
-    breakfast_scaled_data = S.fit_transform(BreakfastDatacalorie)
-    # print(breakfast_scaled_data)
+    foods_scaled_data = S.fit_transform(MealDatacalorie)
+    # print(foods_scaled_data)
 
     # First, test Kmeans with clusters=3
-    k_means_breakfast = KMeans(n_clusters=3, random_state=0)
-    k_means_breakfast.fit(breakfast_scaled_data)
-    labels=k_means_breakfast.labels_
+    k_means_meals = KMeans(n_clusters=4, random_state=0)
+    k_means_meals.fit_predict(foods_scaled_data)
+    labels=k_means_meals.labels_
     # print(brklbl)
 
     #To determine the optimum number of clusters, check the wss score for a given range of k
     wss =[] 
     for i in range(1,11):
-        KM_Breakfast = KMeans(n_clusters=i)
-        KM_Breakfast.fit(breakfast_scaled_data)
-        wss.append(KM_Breakfast.inertia_)
-    print(wss)
+        KM_Meals = KMeans(n_clusters=i, random_state=0)
+        KM_Meals.fit_predict(foods_scaled_data)
+        wss.append(KM_Meals.inertia_)
+    # print(wss)
+    fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
-    plt.show()
+    st.pyplot(fig)
 
     #Checking for n-clusters=3
-    k_means_three_breakfast = KMeans(n_clusters = 3)
-    k_means_three_breakfast.fit(breakfast_scaled_data)
-    print('WSS for K=3:', k_means_three_breakfast.inertia_)
-    labels_three = k_means_three_breakfast.labels_
+    k_means_three_meals = KMeans(n_clusters = 3, random_state=0)
+    k_means_three_meals.fit_predict(foods_scaled_data)
+    print('WSS for K=3:', k_means_three_meals.inertia_)
+    labels_three = k_means_three_meals.labels_
     # print(labels_three)
     #Calculating silhouette_score for k=3
-    print(silhouette_score(breakfast_scaled_data, labels_three))
+    st.write(silhouette_score(foods_scaled_data, labels_three))
 
     # Overview data in clusters
     length = len(FoodItemIDData) + 2
     FoodItem_Test['KMCluster'] = labels
-    clust_profile=FoodItem_Test.iloc[:,2:length].astype(float).groupby(FoodItem_Test['KMCluster']).mean()
+    clust_profile=FoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(FoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=FoodItem_Test.KMCluster.value_counts().sort_index()
-    print(clust_profile)
+    clust = pd.DataFrame(clust_profile)
+    st.dataframe(clust)
 
     return labels
 
@@ -503,7 +507,7 @@ def Weight_Loss_Plan():
     rows_list = []
     # st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
-        if row['KMCluster']==1:
+        if row['KMCluster']==0:
             # row = row.drop(['KMCluster'])
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
@@ -866,7 +870,7 @@ def Weight_Loss_Plan():
     rows_list = []
     # st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
-        if row['KMCluster']==1:
+        if row['KMCluster']==0 or row['KMCluster']==2 :
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -1222,7 +1226,7 @@ def Weight_Loss_Plan():
     rows_list = []
     st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS')
     for idx, row in DinnerNutrition.iterrows():
-        if row['KMCluster']==1:
+        if row['KMCluster']==0 or row['KMCluster']==2:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -1565,8 +1569,7 @@ def Weight_Loss_Plan():
 def Weight_Gain_Plan():
     print_user_input()
 
-    BMI = calc_BMI()
-    TDEE = calc_TDEE()
+    TDEE,total_calo,total_protein,total_carb,total_fat = calc_TDEE()
 
     BreakfastFoodItemIDData, LunchFoodItemIDdata, DinnerFoodItemIDdata = meal_food_data()
 
@@ -1588,127 +1591,478 @@ def Weight_Gain_Plan():
     print("--------------------------------------------------------------------")
 
     ## CREATE TRAIN SET FOR WEIGHT GAIN
-    if meal_time=='Breakfast':
+    # if meal_time=='Breakfast':
         # Breakfast
         # print(BreakfastNutrition)
-        labels = np.array(BreakfastNutrition['KMCluster'])
-        features= BreakfastNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
-        feature_list = list(features.columns)
-        features = np.array(features)
+    labels = np.array(BreakfastNutrition['KMCluster'])
+    features= BreakfastNutrition.drop(['KMCluster','Image','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
+    feature_list = list(features.columns)
+    features = np.array(features)
 
-        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
-        print('Training Features Shape:', train_features.shape)
-        print('Training Labels Shape:', train_labels.shape)
-        print('Testing Features Shape:', test_features.shape)
-        print('Testing Labels Shape:', test_labels.shape)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    print('Training Features Shape:', train_features.shape)
+    print('Training Labels Shape:', train_labels.shape)
+    print('Testing Features Shape:', test_features.shape)
+    print('Testing Labels Shape:', test_labels.shape)
 
-        # #Create a Gaussian Classifier
-        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+    # #Create a Gaussian Classifier
+    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
-        # #Train the model using the training sets y_pred=clf.predict(X_test)
-        clf.fit(train_features, train_labels)
+    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    clf.fit(train_features, train_labels)
 
-        y_pred=clf.predict(test_features)
+    y_pred=clf.predict(test_features)
 
-        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
-        # print(y_pred)
+    print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+    # print(y_pred)
 
-        print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (BREAKFAST)')
-        for idx, row in BreakfastNutrition.iterrows():
-            if row['KMCluster']==1:
-                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+    rows_list = []
+    # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (BREAKFAST)')
+    for idx, row in BreakfastNutrition.iterrows():
+        if row['KMCluster']==1 or row['KMCluster']==2:
+            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+            row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
+            rows_list.append(row)
 
-        # abc=clf.predict([[435,9.70,9.50,55.10,0]])
-        # print(abc)
+    # abc=clf.predict([[435,9.70,9.50,55.10,0]])
+    # print(abc)
 
-        # Get numerical feature importances
-        importances = list(clf.feature_importances_)
-        # List of tuples with variable and importance
-        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
-        # Sort the feature importances by most important first
-        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-        # Print out the feature and importances 
-        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+    df = pd.DataFrame(rows_list)
+    df.insert(loc = 0,column = 'Select',value = '')
+    df.insert(loc = 1,column = 'Volume (g)',value = '100')
 
-    if meal_time=='Lunch':
+    df.append(df, ignore_index = True, sort = False)
+
+    array_test = df.to_numpy()
+    
+    breakfast_df = df
+
+    # Get numerical feature importances
+    importances = list(clf.feature_importances_)
+    # List of tuples with variable and importance
+    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+    # Sort the feature importances by most important first
+    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+    # Print out the feature and importances 
+    # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+    # if meal_time=='Lunch':
         # Lunch
         # print(LunchNutrition)
 
-        labels = np.array(LunchNutrition['KMCluster'])
-        features= LunchNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
-        feature_list = list(features.columns)
-        features = np.array(features)
+    labels = np.array(LunchNutrition['KMCluster'])
+    features= LunchNutrition.drop(['KMCluster','Image','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
+    feature_list = list(features.columns)
+    features = np.array(features)
 
-        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
-        print('Training Features Shape:', train_features.shape)
-        print('Training Labels Shape:', train_labels.shape)
-        print('Testing Features Shape:', test_features.shape)
-        print('Testing Labels Shape:', test_labels.shape)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    print('Training Features Shape:', train_features.shape)
+    print('Training Labels Shape:', train_labels.shape)
+    print('Testing Features Shape:', test_features.shape)
+    print('Testing Labels Shape:', test_labels.shape)
 
-        # #Create a Gaussian Classifier
-        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+    # #Create a Gaussian Classifier
+    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
-        # #Train the model using the training sets y_pred=clf.predict(X_test)
-        clf.fit(train_features, train_labels)
+    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    clf.fit(train_features, train_labels)
 
-        y_pred=clf.predict(test_features)
+    y_pred=clf.predict(test_features)
 
-        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
-        # print(y_pred)
+    print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+    # print(y_pred)
 
-        print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (LUNCH)')
-        for idx, row in LunchNutrition.iterrows():
-            if row['KMCluster']==2:
-                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+    rows_list = []
+    # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (LUNCH)')
+    for idx, row in LunchNutrition.iterrows():
+        if row['KMCluster']==1 or row['KMCluster']==2:
+            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+            row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
+            rows_list.append(row)
 
-        # Get numerical feature importances
-        importances = list(clf.feature_importances_)
-        # List of tuples with variable and importance
-        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
-        # Sort the feature importances by most important first
-        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-        # Print out the feature and importances 
-        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+    # Get numerical feature importances
+    importances = list(clf.feature_importances_)
+    # List of tuples with variable and importance
+    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+    # Sort the feature importances by most important first
+    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+    # Print out the feature and importances 
+    # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
-    if meal_time=='Dinner':
+    df = pd.DataFrame(rows_list)
+    df.insert(loc = 0,column = 'Select',value = '')
+    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+
+    df.append(df, ignore_index = True, sort = False)
+
+    array_test = df.to_numpy()
+    lunch_df = df
+
+    # if meal_time=='Dinner':
         # Dinner
         # print(DinnerNutrition)
 
-        labels = np.array(DinnerNutrition['KMCluster'])
-        features= DinnerNutrition.drop(['KMCluster','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
-        feature_list = list(features.columns)
-        features = np.array(features)
+    labels = np.array(DinnerNutrition['KMCluster'])
+    features= DinnerNutrition.drop(['KMCluster','Image','Food_items','VegNovVeg','Sodium','Potassium','Fibre'], axis = 1)
+    feature_list = list(features.columns)
+    features = np.array(features)
 
-        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
-        print('Training Features Shape:', train_features.shape)
-        print('Training Labels Shape:', train_labels.shape)
-        print('Testing Features Shape:', test_features.shape)
-        print('Testing Labels Shape:', test_labels.shape)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    print('Training Features Shape:', train_features.shape)
+    print('Training Labels Shape:', train_labels.shape)
+    print('Testing Features Shape:', test_features.shape)
+    print('Testing Labels Shape:', test_labels.shape)
 
-        # #Create a Gaussian Classifier
-        clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+    # #Create a Gaussian Classifier
+    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
-        # #Train the model using the training sets y_pred=clf.predict(X_test)
-        clf.fit(train_features, train_labels)
+    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    clf.fit(train_features, train_labels)
 
-        y_pred=clf.predict(test_features)
+    y_pred=clf.predict(test_features)
 
-        print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
-        # print(y_pred)
+    print("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+    # print(y_pred)
 
-        print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (DINNER)')
-        for idx, row in DinnerNutrition.iterrows():
-            if row['KMCluster']==0 or row['KMCluster']==1:
-                print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+    rows_list = []
+    st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN')
+    for idx, row in DinnerNutrition.iterrows():
+        if row['KMCluster']==1:
+            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
+            row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
+            rows_list.append(row)
 
-        # Get numerical feature importances
-        importances = list(clf.feature_importances_)
-        # List of tuples with variable and importance
-        feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
-        # Sort the feature importances by most important first
-        feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-        # Print out the feature and importances 
-        [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+    # Get numerical feature importances
+    importances = list(clf.feature_importances_)
+    # List of tuples with variable and importance
+    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+    # Sort the feature importances by most important first
+    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+    # Print out the feature and importances 
+    # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+
+    df = pd.DataFrame(rows_list)
+    df.insert(loc = 0,column = 'Select',value = '')
+    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+
+    df.append(df, ignore_index = True, sort = False)
+
+    dinner_df = df
+    array_test = df.to_numpy()
+
+    template = jinja2.Template(f"""<!DOCTYPE html>
+        <html>
+
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width">
+                <title>Demo</title>
+                <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+                <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+
+                <style>
+                    h2 {{
+                        font-family: "Source Sans Pro", sans-serif;
+                        font-weight: 400;
+                        color: rgb(49, 51, 63);
+                        letter-spacing: -0.005em;
+                        padding: 0.5rem 0px 1rem;
+                        margin: 0px;
+                        line-height: 1;
+                        font-size: 15px;
+                    }}
+
+                    h3 {{
+                        font-family: "Source Sans Pro", sans-serif;
+                        font-weight: 600;
+                        color: rgb(49, 51, 63);
+                        letter-spacing: -0.005em;
+                        padding: 0.5rem 0px 1rem;
+                        margin: 0px;
+                        line-height: 1;
+                        font-size: 20px;
+                        text-align: center;
+                    }}
+
+                    .alert {{
+                        padding: 15px;
+                        margin-bottom: 10px;
+                        border: 1px solid transparent;
+                        border-radius: 4px;
+                    }}
+
+                    .alert-success {{
+                        background-color: #dff0d8;
+                        border-color: #d6e9c6;
+                        color: #3c763d;
+                    }}
+
+                    .alert-info {{
+                        background-color: #d9edf7;
+                        border-color: #bce8f1;
+                        color: #31708f;
+                    }}
+                    .alert-warning {{
+                        background-color: #fcf8e3;
+                        border-color: #faebcc;
+                        color: #8a6d3b;
+                    }}
+
+                    .table {{
+                        width: 100%;
+                        max-width: 100%;
+                        margin-bottom: 1rem;
+
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        display: table-cell;
+
+                        font-family: "Source Sans Pro", sans-serif;
+                        font-size: 14px;
+                        color: rgb(49, 51, 63);
+                    }}
+
+                    .table th,
+                    .table td {{
+                    padding: 0.75rem;
+                    vertical-align: top;
+                    border-top: 1px solid #eceeef;
+                    data-sortable: false;
+
+                    }}
+
+                    .table thead tr th {{
+                    vertical-align: bottom;
+                    border-bottom: 2px solid #eceeef;
+                    text-align: center;
+                    color: rgba(49, 51, 63, 0.6);
+                    font-family: "Source Sans Pro", sans-serif;
+                    font-weight: 400;
+                    vertical-align: middle;
+                    }}
+
+                        .table thead tr th {{
+                    vertical-align: bottom;
+                    border-bottom: 2px solid #eceeef;
+                    text-align: center;
+                    color: rgba(49, 51, 63, 0.6);
+                    font-family: "Source Sans Pro", sans-serif;
+                    font-weight: 400;
+                    vertical-align: middle;
+                    }}
+
+                    .dataTable-sorter::before,
+                    .dataTable-sorter::after {{
+                        display: none;
+                        
+                    }}
+
+                    .dataTable-sorter {{
+                        pointer-events: none;
+                        cursor: default;
+                    }}
+
+                    .table tbody + tbody {{
+                    border-top: 2px solid #eceeef;
+                    }}
+                    
+                    .table-striped tbody tr:nth-of-type(odd) {{
+                    background-color: rgba(0, 0, 0, 0.05);
+                    }}
+
+                        .table_wrapper{{
+                        display: block;
+                        overflow-x: auto;
+                        white-space: nowrap;
+                    }}
+                    .table {{
+                        font-family: arial, sans-serif;
+                        border-collapse: collapse;
+                        width: 100%;
+                        overflow-x: auto;
+                        border: 1px solid black;
+                        table-layout: fixed;
+                        overflow: scroll;
+                        overflow-y:scroll;
+                        height: 400px;
+                        display:block;
+                    }}
+                    td {{
+                        border: 1px solid #dddddd;
+                        text-align: center;
+                        padding: 8px;
+                        white-space: nowrap;
+                        width: 100px;
+                    }}
+                    th {{
+                        border: 1px solid #dddddd;
+                        text-align: center;
+                        padding: 8px;
+                        white-space: nowrap;
+                        width: 100px;
+                    }}
+                    div {{
+                        overflow: auto;
+                    }}
+                </style>
+            </head>
+        
+            <div>
+                <h2 class ="alert alert-info">Total calories is <strong><span id="calories"></span>/{total_calo}</strong> calories</h2>
+                <h2 class ="alert alert-info">Total fats is <strong><span id="fats"></span>/{total_fat}</strong> g</h2>
+                <h2 class ="alert alert-info">Total proteins is <strong><span id="proteins"></span>/{total_protein}</strong> g</h2>
+                <h2 class ="alert alert-info">Total carbohydrates is <strong><span id="carbohydrates"></span>/{total_carb}</strong> g</h2>
+            </div>
+            
+            <body>
+                <h3>BREAKFAST</h3>
+                {{{{ breakfast_dataframe }}}}
+                <h3>LUNCH</h3>
+                {{{{ lunch_dataframe }}}}
+                 <h3>DINNER</h3>
+                {{{{ dinner_dataframe }}}}
+    
+            </body>
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+            <script defer type="text/javascript">
+                let myTable = new simpleDatatables.DataTable("#myTable", {{paging:false}});
+            
+                    var $rows = $('#myTable tr');
+                    console.log($rows.length)
+                    for (var i = 0; i < $rows.length; i++) {{
+                        var checkbox = document.createElement("INPUT"); //Added for checkbox
+                        checkbox.name = "case[]"
+                        checkbox.type = "checkbox"; //Added for checkbox
+                        
+                        if(i == 0) {{
+                            var br = document.createElement("br");
+                            $rows[i].cells[1].appendChild(br);
+                        }}
+                        $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
+                        $rows[i].cells[2].contentEditable = "true";
+                    }}
+                    $('td[contenteditable]').addClass('volumn_editable');
+            </script>
+
+            <script defer type="text/javascript">
+                function calc_new() {{
+                    var valuess = new Array();
+                    $.each($("input[name='case[]']:checked"), function() {{
+                        var datas = $(this).parents('tr:eq(0)');
+                        console.log(datas);
+                        valuess.push({{ 'Volumn':$(datas).find('td:eq(1)').text(), 'Food_items':$(datas).find('td:eq(3)').text() , 'Calories':$(datas).find('td:eq(4)').text(),
+                                        'Fats':$(datas).find('td:eq(5)').text(), 'Proteins':$(datas).find('td:eq(6)').text(),
+                                        'Carbohydrates':$(datas).find('td:eq(7)').text(), 'Fibre':$(datas).find('td:eq(8)').text(),
+                                        }});               
+                    
+                                    
+                        console.log(valuess);
+                        var total_calories = 0;
+                        var total_fats = 0;
+                        var total_proteins = 0;
+                        var total_carbs = 0;
+                
+                        for(var i = 0; i < valuess.length; i++) {{
+                            total_calories = total_calories + parseFloat(valuess[i]['Calories']);
+                            total_fats = total_fats + parseFloat(valuess[i]['Fats']);
+                            total_proteins = total_proteins + parseFloat(valuess[i]['Proteins']);
+                            total_carbs = total_carbs + parseFloat(valuess[i]['Carbohydrates']);
+                        }}
+
+                        document.getElementById("calories").innerHTML = total_calories.toFixed(1).toString();
+                        document.getElementById("fats").innerHTML = total_fats.toFixed(1).toString();
+                        document.getElementById("proteins").innerHTML = total_proteins.toFixed(1).toString();
+                        document.getElementById("carbohydrates").innerHTML = total_carbs.toFixed(1).toString();
+                    }});
+                }}
+                $("input[name='case[]']").click(function(){{
+                    calc_new();
+                    var numberOfChecked = $("input[name='case[]']:checked").length;
+
+                    if (numberOfChecked == 0) {{
+                        document.getElementById("calories").innerHTML = '0';
+                        document.getElementById("fats").innerHTML = '0';
+                        document.getElementById("proteins").innerHTML = '0';
+                        document.getElementById("carbohydrates").innerHTML = '0';
+                    }}
+                }});
+            </script>
+
+            <script defer type="text/javascript">
+                var first_load = true;
+                var ratio_old = 0;
+                var calo_fixed = 0;
+                var fats_fixed = 0;
+                var proteins_fixed = 0;
+                var carbohydrates_fixed = 0;
+                var fibre_fixed = 0;
+
+                var ratio = 0; 
+                var calories = 0; 
+                var fats = 0; 
+                var proteins = 0; 
+                var carbohydrates = 0; 
+                var fibre = 0; 
+
+                var new_ratio = 0;
+
+                $("td[contenteditable]").on("focus", function() {{
+                    var values = new Array();
+
+                    var data = $(event.target).closest('tr');
+                    
+                    values.push({{ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(3)').text() , 'Calories':$(data).find('td:eq(4)').text(),
+                                        'Fats':$(data).find('td:eq(5)').text(), 'Proteins':$(data).find('td:eq(6)').text(),
+                                        'Carbohydrates':$(data).find('td:eq(7)').text(), 'Fibre':$(data).find('td:eq(8)').text(),
+                                        }});    
+
+                    ratio_old = parseFloat(values[0]['Volumn']);
+                    console.log(ratio_old)
+                                                
+                }});
+                
+                $("td[contenteditable]").on("blur", function() {{
+                    var values = new Array();
+
+                    var data = $(event.target).closest('tr');
+                    
+                    values.push({{ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(3)').text() , 'Calories':$(data).find('td:eq(4)').text(),
+                                        'Fats':$(data).find('td:eq(5)').text(), 'Proteins':$(data).find('td:eq(6)').text(),
+                                        'Carbohydrates':$(data).find('td:eq(7)').text(), 'Fibre':$(data).find('td:eq(8)').text(),
+                                        }});     
+
+                        ratio = parseFloat(values[0]['Volumn']) / ratio_old;
+                        calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
+                        fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
+                        proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
+                        carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
+                        fibre_fixed = (parseFloat(values[0]['Fibre']) * ratio);
+
+                        console.log(ratio);
+                        console.log(new_ratio);
+                    
+                    
+                        $(data).find('td:eq(4)').text(calo_fixed.toFixed(1));
+                        $(data).find('td:eq(5)').text(fats_fixed.toFixed(1));
+                        $(data).find('td:eq(6)').text(proteins_fixed.toFixed(1));
+                        $(data).find('td:eq(7)').text(carbohydrates_fixed.toFixed(1));
+                        $(data).find('td:eq(8)').text(fibre_fixed.toFixed(1));
+                        console.log(proteins_fixed)
+                        calc_new();
+                    
+
+                }});
+
+            </script>
+        </html>"""
+                                )
+
+    output_html = template.render(lunch_dataframe=lunch_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
+                breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
+                dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)))
+
+    components.html(output_html,720,1700)  # JavaScript works
 
 def Maintenance_Plan():
     print_user_input()
@@ -1882,24 +2236,24 @@ def Predict():
     print('Testing Labels Shape:', test_labels.shape)
 
     # #Create a Gaussian Classifier
-    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+    clf=RandomForestClassifier(n_estimators = 500, random_state = 42)
 
     # #Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
 
     y_pred=clf.predict(test_features)
 
-    st.write("Accuracy:",metrics.accuracy_score(test_labels, y_pred))
-    print(y_pred)
+    st.write("Model Accuracy:",metrics.accuracy_score(test_labels, y_pred))
 
     y_pred=clf.predict([[float(food_calories),float(food_fat), float(food_protein), float(food_carb)]])
 
-    print('PREDICTION RESULT :: ')
-    if y_pred==0:
-        st.info('FIT FOR WEIGHT GAIN PLAN')
-    if y_pred==1 or y_pred==2:
-        st.info('FIT FOR WEIGHT LOSS or MAINTENANCE PLAN')
-    
+    if y_pred==0 or y_pred==2:
+        st.info('HEALTHY FOOD: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+    if y_pred==1 or y_pred==3:
+        st.info('NOT HEALTHY FOOD: SUITABLE FOR **WEIGHT GAIN**')
+    # if y_pred==2:
+    #     st.info('PREDICTION RESULT: MOST SUITABLE FOR **MAINTENANCE**')
+
     st.balloons()
 
     # Get numerical feature importances
@@ -1909,9 +2263,8 @@ def Predict():
     # Sort the feature importances by most important first
     feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
     # Print out the feature and importances 
-    # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+    [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
- 
 
 st.set_page_config(layout="centered")
     
@@ -1996,11 +2349,11 @@ with user_input:
             'Very active',
             'Extra active'])
 
-        st.sidebar.subheader("What is your favorite meal?")
-        meal_time = st.sidebar.selectbox('Choose your desired meal time!', options=[
-            'Breakfast',
-            'Lunch',
-            'Dinner',])
+        # st.sidebar.subheader("What is your favorite meal?")
+        # meal_time = st.sidebar.selectbox('Choose your desired meal time!', options=[
+        #     'Breakfast',
+        #     'Lunch',
+        #     'Dinner',])
 
         st.sidebar.subheader("What is your diet plan?")
         diet_plan = st.sidebar.radio(
@@ -2017,10 +2370,10 @@ with user_input:
 
     if choice == 'Predict food for diet plan':
         st.sidebar.subheader("What is the name of the food?")
-        food_name = st.sidebar.text_input("Enter the food's name!'", 'Banana')
+        food_name = st.sidebar.text_input("Enter the food's name!", 'Banana')
 
         st.sidebar.subheader("Enter calories in 100g of food!")
-        food_calories = st.sidebar.text_input("Enter the amount of calories in the food!'", '89')
+        food_calories = st.sidebar.text_input("Enter the amount of calories in the food!", '89')
 
         st.sidebar.subheader("Enter the amount of fat in 100g of food!")
         food_fat = st.sidebar.text_input("Enter the grams of fat!", '0.3')
