@@ -14,12 +14,9 @@ from sklearn.tree import export_graphviz
 import pydot
 import streamlit as st
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, CustomJS
-from bokeh.models import DataTable, TableColumn
 from streamlit_bokeh_events import streamlit_bokeh_events
 import streamlit.components.v1 as components
 import jinja2
-
 
 # read dataset
 data=pd.read_csv('food.csv')
@@ -168,7 +165,7 @@ def print_user_input():
     print("\n Age: %s\n Gender: %s\n Weight: %s kg\n Height: %s cm\n Activity level: %s\n" % (age, gender, weight, height, activity_level))
 
 def print_prediction_input():
-    print("\n Calories: %s\n Fat: %s g\n Protein: %s g\n Carb: %s g " % (age,age, age, age))
+    print("\n Calories: %s\n Fat: %s g\n Protein: %s g\n Carb: %s g " % (food_calories,food_fat,food_protein,food_carb))
 
 def calc_BMI():
     # tinh BMI
@@ -207,16 +204,54 @@ def calc_TDEE():
         BMR = 10*Weight + 6.25*Height - 5*Age - 161
 
     BMI = calc_BMI()
-    if BMI >= 30:
-        sub_calories = 500
-    else:
-        sub_calories = 300
+    if diet_plan == 'Weight Loss':
+        if BMI >= 30:
+            calorie_deficit = 500
+            TDEE = BMR * Activity_Level1
+            total_calo = float("{:.0f}".format(TDEE - calorie_deficit)) 
+            total_protein = float("{:.0f}".format((total_calo * 0.4)/4))
+            total_carb = float("{:.0f}".format((total_calo * 0.3)/4)) 
+            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9)) 
+        else:
+            calorie_deficit = 300
+            TDEE = BMR * Activity_Level1
+            total_calo = float("{:.0f}".format(TDEE - calorie_deficit)) 
+            total_protein = float("{:.0f}".format((total_calo * 0.4)/4))
+            total_carb = float("{:.0f}".format((total_calo * 0.3)/4)) 
+            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
 
-    TDEE = BMR * Activity_Level1
-    total_calo = float("{:.0f}".format(TDEE - sub_calories)) 
-    total_protein = float("{:.0f}".format((total_calo * 0.4)/4))
-    total_carb = float("{:.0f}".format((total_calo * 0.3)/4)) 
-    total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9)) 
+        labels = 'Protein', 'Carbohydrate', 'Fat'
+        sizes = [40, 30, 30]
+        explode = (0.1,0, 0)
+    if diet_plan == 'Weight Gain':
+        if BMI < 16:
+            calorie_surplus = 500
+            TDEE = BMR * Activity_Level1
+            total_calo = float("{:.0f}".format(TDEE + calorie_surplus)) 
+            total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
+            total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
+            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
+        else:
+            calorie_surplus = 300
+            TDEE = BMR * Activity_Level1
+            total_calo = float("{:.0f}".format(TDEE + calorie_surplus)) 
+            total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
+            total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
+            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
+
+        labels = 'Protein', 'Carbohydrate', 'Fat'
+        sizes = [25, 50, 25]
+        explode = (0,0.1, 0)
+    if diet_plan == 'Maintenance':
+        TDEE = BMR * Activity_Level1
+        total_calo = float("{:.0f}".format(TDEE)) 
+        total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
+        total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
+        total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
+
+        labels = 'Protein', 'Carbohydrate', 'Fat'
+        sizes = [25, 50, 25]
+        explode = (0,0.1, 0)
 
     my_expander = st.expander(label='Health Check!')
     with my_expander:
@@ -227,9 +262,7 @@ def calc_TDEE():
         str_protein = "Protein intake should be **{} gam per day**".format(total_protein)
         str_fat = "Fat intake should be **{} gam per day**".format(total_fat)
         str_carb = "Carbohydrate intake should be **{} gam per day**".format(total_carb)
-        
-        
-        
+         
         if ( BMI < 16):
             str_health = "Your body condition is **Severely Underweight**"
         elif ( BMI >= 16 and BMI < 18.5):
@@ -250,6 +283,15 @@ def calc_TDEE():
         st.success(str_carb)
 
         st.balloons()
+
+        fig1, ax1 = plt.subplots(figsize=(8, 3))
+        patches, texts, pcts = ax1.pie(sizes, explode=explode, colors = ['#555658','#41B6EF','#CDCED0'] ,labels=labels, autopct='%1.1f%%',
+                shadow=True, startangle=90)
+        plt.setp(pcts, color='white')
+        ax1.axis('equal') 
+
+        
+        st.pyplot(fig1)
     # st.info("**Your Total Daily Energy Expenditure is: ", TDEE , 'calories**')
     # st.info("**Our recommend Total Daily Intake Calories is: ", total_calo , 'calories**')
     # st.info("**Total Protein is: ", total_protein , 'g**')
@@ -483,10 +525,6 @@ def Weight_Loss_Plan():
     LunchNutrition = LunchFoodItemIDdata
     DinnerNutrition = DinnerFoodItemIDdata
 
-    # BreakfastFoodItem_Test = BreakfastFoodItemIDData
-    # LunchFoodItem_Test = LunchFoodItemIDdata
-    # DinnerFoodItem_Test = DinnerFoodItemIDdata
-
     BreakfastFoodItemIDData=BreakfastFoodItemIDData.to_numpy()
     DinnerFoodItemIDdata=DinnerFoodItemIDdata.to_numpy()
     LunchFoodItemIDdata=LunchFoodItemIDdata.to_numpy()
@@ -504,10 +542,7 @@ def Weight_Loss_Plan():
     # st.write("--------------------------------------------------------------------")
 
     ## CREATE TRAIN SET FOR WEIGHT LOSS
-    # if meal_time=='Breakfast':
-        # Breakfast
-        # print(BreakfastNutrition)
-
+    
     labels = np.array(BreakfastNutrition['KMCluster'])
     features= BreakfastNutrition.drop(['KMCluster','Image','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','VitaminD','Sugars'], axis = 1)
     feature_list = list(features.columns)
@@ -522,7 +557,7 @@ def Weight_Loss_Plan():
     # #Create a Gaussian Classifier
     clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
-    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    # Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
 
     y_pred=clf.predict(test_features)
@@ -531,14 +566,12 @@ def Weight_Loss_Plan():
     # print(y_pred)
 
     rows_list = []
-    # st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
         if row['KMCluster']==0:
             # row = row.drop(['KMCluster'])
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
-            # print(row.to_frame().T)
 
     df = pd.DataFrame(rows_list)
     df.insert(loc = 0,column = 'Select',value = '')
@@ -864,12 +897,7 @@ def Weight_Loss_Plan():
 
     # output_html = template.render(dataframe=df.to_html(classes='table table-striped', header="true", table_id="myTable"))
 
-    # components.html(output_html,720,1000)  # JavaScript works
-
-    ###-------------------------------------------------------------------------------   
-    # if meal_time=='Lunch':
-        # Lunch
-        # print(LunchNutrition)
+    # components.html(output_html,720,1000) 
 
     labels = np.array(LunchNutrition['KMCluster'])
     features= LunchNutrition.drop(['KMCluster','Image','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','VitaminD','Sugars'], axis = 1)
@@ -882,10 +910,10 @@ def Weight_Loss_Plan():
     print('Testing Features Shape:', test_features.shape)
     print('Testing Labels Shape:', test_labels.shape)
 
-    # #Create a Gaussian Classifier
+    #Create a Gaussian Classifier
     clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
 
-    # #Train the model using the training sets y_pred=clf.predict(X_test)
+    # Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
 
     y_pred=clf.predict(test_features)
@@ -920,312 +948,6 @@ def Weight_Loss_Plan():
     df = df.reset_index(drop=True)
     lunch_df = df
     # st.dataframe(df)
-
-    # Generate HTML from template.
-    template = jinja2.Template(f"""<!DOCTYPE html>
-        <html>
-
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width">
-            <title>Demo</title>
-            <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
-            <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
-
-                <style>
-                h2 {{
-                    font-family: "Source Sans Pro", sans-serif;
-                    font-weight: 400;
-                    color: rgb(49, 51, 63);
-                    letter-spacing: -0.005em;
-                    padding: 0.5rem 0px 1rem;
-                    margin: 0px;
-                    line-height: 1;
-                    font-size: 15px;
-                }}
-
-                .alert {{
-                    padding: 15px;
-                    margin-bottom: 10px;
-                    border: 1px solid transparent;
-                    border-radius: 4px;
-                }}
-
-                .alert-success {{
-                    background-color: #dff0d8;
-                    border-color: #d6e9c6;
-                    color: #3c763d;
-                }}
-
-                .alert-info {{
-                    background-color: #d9edf7;
-                    border-color: #bce8f1;
-                    color: #31708f;
-                }}
-                .alert-warning {{
-                    background-color: #fcf8e3;
-                    border-color: #faebcc;
-                    color: #8a6d3b;
-                }}
-
-                .table {{
-                    width: 100%;
-                    max-width: 100%;
-                    margin-bottom: 1rem;
-
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    display: table-cell;
-
-                    font-family: "Source Sans Pro", sans-serif;
-                    font-size: 14px;
-                    color: rgb(49, 51, 63);
-                }}
-
-                .table th,
-                .table td {{
-                padding: 0.75rem;
-                vertical-align: top;
-                border-top: 1px solid #eceeef;
-                data-sortable: false;
-
-                }}
-
-                .table thead tr th {{
-                vertical-align: bottom;
-                border-bottom: 2px solid #eceeef;
-                text-align: center;
-                color: rgba(49, 51, 63, 0.6);
-                font-family: "Source Sans Pro", sans-serif;
-                font-weight: 400;
-                vertical-align: middle;
-                }}
-
-                    .table thead tr th {{
-                vertical-align: bottom;
-                border-bottom: 2px solid #eceeef;
-                text-align: center;
-                color: rgba(49, 51, 63, 0.6);
-                font-family: "Source Sans Pro", sans-serif;
-                font-weight: 400;
-                vertical-align: middle;
-                }}
-
-                .dataTable-sorter::before,
-                .dataTable-sorter::after {{
-                    display: none;
-                    
-                }}
-
-                .dataTable-sorter {{
-                    pointer-events: none;
-                    cursor: default;
-                }}
-
-                .table tbody + tbody {{
-                border-top: 2px solid #eceeef;
-                }}
-                
-                .table-striped tbody tr:nth-of-type(odd) {{
-                background-color: rgba(0, 0, 0, 0.05);
-                }}
-
-                    .table_wrapper{{
-                    display: block;
-                    overflow-x: auto;
-                    white-space: nowrap;
-                }}
-                .table {{
-                    font-family: arial, sans-serif;
-                    border-collapse: collapse;
-                    width: 100%;
-                    overflow-x: auto;
-                    border: 1px solid black;
-                    table-layout: fixed;
-                    overflow: scroll;
-                    overflow-y:scroll;
-                    height: 400px;
-                    display:block;
-                }}
-                td {{
-                    border: 1px solid #dddddd;
-                    text-align: center;
-                    padding: 8px;
-                    white-space: nowrap;
-                    width: 100px;
-                }}
-                th {{
-                    border: 1px solid #dddddd;
-                    text-align: center;
-                    padding: 8px;
-                    white-space: nowrap;
-                    width: 100px;
-                }}
-                div {{
-                    overflow: auto;
-                }}
-            </style>
-        </head>
-        
-            <div>
-            <h2 class ="alert alert-info">Total calories is <strong><span id="calories"></span>/{total_calo}</strong> calories</h2>
-            <h2 class ="alert alert-info">Total fats is <strong><span id="fats"></span>/{total_fat}</strong> g</h2>
-            <h2 class ="alert alert-info">Total proteins is <strong><span id="proteins"></span>/{total_protein}</strong> g</h2>
-            <h2 class ="alert alert-info">Total carbohydrates is <strong><span id="carbohydrates"></span>/{total_carb}</strong> g</h2>
-            </div>
-            
-            <body>
-
-                {{{{ dataframe }}}}
-                {{{{ dataframe1 }}}}
-    
-            </body>
-
-            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-
-            <script defer type="text/javascript">
-                let myTable = new simpleDatatables.DataTable("#myTable", {{paging:false}});
-            
-                    var $rows = $('#myTable tr');
-                    console.log($rows.length)
-                    for (var i = 0; i < $rows.length; i++) {{
-                        var checkbox = document.createElement("INPUT"); //Added for checkbox
-                        checkbox.name = "case[]"
-                        checkbox.type = "checkbox"; //Added for checkbox
-                        
-                        if(i == 0) {{
-                            var br = document.createElement("br");
-                            $rows[i].cells[1].appendChild(br);
-                        }}
-                        $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
-                        $rows[i].cells[2].contentEditable = "true";
-                    }}
-                    $('td[contenteditable]').addClass('volumn_editable');
-            </script>
-
-        
-
-
-            <script defer type="text/javascript">
-                function calc_new() {{
-                    var valuess = new Array();
-                    $.each($("input[name='case[]']:checked"), function() {{
-                        var datas = $(this).parents('tr:eq(0)');
-                        console.log(datas);
-                        valuess.push({{ 'Volumn':$(datas).find('td:eq(1)').text(), 'Food_items':$(datas).find('td:eq(2)').text() , 'Calories':$(datas).find('td:eq(3)').text(),
-                                        'Fats':$(datas).find('td:eq(4)').text(), 'Proteins':$(datas).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datas).find('td:eq(6)').text(), 'Fibre':$(datas).find('td:eq(7)').text(),
-                                        }});               
-                    
-                                    
-                        console.log(valuess);
-                        var total_calories = 0;
-                        var total_fats = 0;
-                        var total_proteins = 0;
-                        var total_carbs = 0;
-                
-                        for(var i = 0; i < valuess.length; i++) {{
-                            total_calories = total_calories + parseFloat(valuess[i]['Calories']);
-                            total_fats = total_fats + parseFloat(valuess[i]['Fats']);
-                            total_proteins = total_proteins + parseFloat(valuess[i]['Proteins']);
-                            total_carbs = total_carbs + parseFloat(valuess[i]['Carbohydrates']);
-                        }}
-
-                        document.getElementById("calories").innerHTML = total_calories.toFixed(1).toString();
-                        document.getElementById("fats").innerHTML = total_fats.toFixed(1).toString();
-                        document.getElementById("proteins").innerHTML = total_proteins.toFixed(1).toString();
-                        document.getElementById("carbohydrates").innerHTML = total_carbs.toFixed(1).toString();
-                    }});
-                }}
-                $("input[name='case[]']").click(function(){{
-                    calc_new();
-                    var numberOfChecked = $("input[name='case[]']:checked").length;
-
-                    if (numberOfChecked == 0) {{
-                        document.getElementById("calories").innerHTML = '0';
-                        document.getElementById("fats").innerHTML = '0';
-                        document.getElementById("proteins").innerHTML = '0';
-                        document.getElementById("carbohydrates").innerHTML = '0';
-                    }}
-                }});
-            </script>
-
-            <script defer type="text/javascript">
-                var first_load = true;
-                var ratio_old = 0;
-                var calo_fixed = 0;
-                var fats_fixed = 0;
-                var proteins_fixed = 0;
-                var carbohydrates_fixed = 0;
-                var fibre_fixed = 0;
-
-                var ratio = 0; 
-                var calories = 0; 
-                var fats = 0; 
-                var proteins = 0; 
-                var carbohydrates = 0; 
-                var fibre = 0; 
-
-                var new_ratio = 0;
-
-                $("td[contenteditable]").on("focus", function() {{
-                    var values = new Array();
-
-                    var data = $(event.target).closest('tr');
-                    
-                    values.push({{ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(2)').text() , 'Calories':$(data).find('td:eq(3)').text(),
-                                        'Fats':$(data).find('td:eq(4)').text(), 'Proteins':$(data).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(data).find('td:eq(6)').text(), 'Fibre':$(data).find('td:eq(7)').text(),
-                                        }});    
-
-                    ratio_old = parseFloat(values[0]['Volumn']);
-                    console.log(ratio_old)
-                                                
-                }});
-                
-                $("td[contenteditable]").on("blur", function() {{
-                    var values = new Array();
-
-                    var data = $(event.target).closest('tr');
-                    
-                    values.push({{ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(2)').text() , 'Calories':$(data).find('td:eq(3)').text(),
-                                        'Fats':$(data).find('td:eq(4)').text(), 'Proteins':$(data).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(data).find('td:eq(6)').text(), 'Fibre':$(data).find('td:eq(7)').text(),
-                                        }});     
-
-                        ratio = parseFloat(values[0]['Volumn']) / ratio_old;
-                        calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
-                        fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
-                        proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
-                        carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
-                        fibre_fixed = (parseFloat(values[0]['Fibre']) * ratio);
-
-                        console.log(ratio);
-                        console.log(new_ratio);
-                    
-                    
-                        $(data).find('td:eq(3)').text(calo_fixed.toFixed(1));
-                        $(data).find('td:eq(4)').text(fats_fixed.toFixed(1));
-                        $(data).find('td:eq(5)').text(proteins_fixed.toFixed(1));
-                        $(data).find('td:eq(6)').text(carbohydrates_fixed.toFixed(1));
-                        $(data).find('td:eq(7)').text(fibre_fixed.toFixed(1));
-                        console.log(proteins_fixed)
-                        calc_new();
-                    
-                }});
-
-            </script>
-        </html>"""
-                                )
-
-    # output_html = template.render(dataframe=df.to_html(classes='table table-striped', header="true", table_id="myTable"), dataframe1=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable"))
-
-    # components.html(output_html,720,1000)  # JavaScript works
-
-    ###------------------------------------------------------------------------------- 
-    # if meal_time=='Dinner':
-        # Dinner
-        # print(DinnerNutrition)
 
     labels = np.array(DinnerNutrition['KMCluster'])
     features= DinnerNutrition.drop(['KMCluster','Image','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','VitaminD','Sugars'], axis = 1)
@@ -1288,7 +1010,14 @@ def Weight_Loss_Plan():
                 <meta name="viewport" content="width=device-width">
                 <title>Demo</title>
                 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+                <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+                <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
 
                 <style>
                     h2 {{
@@ -1381,16 +1110,16 @@ def Weight_Loss_Plan():
                     vertical-align: middle;
                     }}
 
-                    .dataTable-sorter::before,
-                    .dataTable-sorter::after {{
-                        display: none;
+                    # .dataTable-sorter::before,
+                    # .dataTable-sorter::after {{
+                    #     display: none;
                         
-                    }}
+                    # }}
 
-                    .dataTable-sorter {{
-                        pointer-events: none;
-                        cursor: default;
-                    }}
+                    # .dataTable-sorter {{
+                    #     pointer-events: none;
+                    #     cursor: default;
+                    # }}
 
                     .table tbody + tbody {{
                     border-top: 2px solid #eceeef;
@@ -1445,6 +1174,59 @@ def Weight_Loss_Plan():
                         vertical-align: middle;
                         text-align: center;
                     }}
+
+                    # thead, tfoot {{
+                    # display: none;
+                    # }}
+                    # table {{
+                    # background: none !important;
+                    # border: none !important;
+                    # }}
+                    # tr {{
+                    # display: inline-block;
+                    # padding: 1rem 0.5rem 1rem 0.5rem;
+                    # margin: 1.5rem;
+                    # border: 1px solid grey;
+                    # border-radius 10px;
+                    # box-shadow: 0 0 10px;
+                    # }}
+                    # td {{
+                    # display: block;
+                    # }}
+                    td {{border: 1px #DDD solid; padding: 5px; cursor: pointer;}}
+
+                    .selected {{
+                        background-color: brown;
+                        color: #FFF;
+                    }}
+
+                      .btn-purple {{
+                    color: #fff;
+                    background-color: #6f42c1;
+                    border-color: #643ab0;
+                }}
+                .modal-body div{{float:left; width: 100%}}
+                .modal-body div p{{float:left; width: 20%; font-weight: 600;}}
+                .modal-body div span{{float:left; width: 80%}}
+                .modal {{
+                    position: absolute;
+                    top: 12%;
+                    right: 100px;
+                    bottom: 0;
+                    left: 0;
+                    z-index: 10040;
+                    overflow: auto;
+                    overflow-y: auto;
+                    }}
+                .card-img-top {{
+                    width: 100%;
+                    height: 50vw;
+                    object-fit: cover;
+                }}
+                .modal-dialog {{
+                    width: 27rem;
+                    margin: 0 auto;
+                    }}
                 </style>
             </head>
         
@@ -1454,6 +1236,8 @@ def Weight_Loss_Plan():
                 <h2 class ="alert alert-info">Total proteins is <strong><span id="proteins"></span>/{total_protein}</strong> g</h2>
                 <h2 class ="alert alert-info">Total carbohydrates is <strong><span id="carbohydrates"></span>/{total_carb}</strong> g</h2>
             </div>
+
+            
             
             <body>
                 <h3>BREAKFAST</h3>
@@ -1464,6 +1248,22 @@ def Weight_Loss_Plan():
                 {{{{ dinner_dataframe }}}}
     
             </body>
+
+            <div class="modal hide fade" id="myModal" role="dialog" aria-hidden="true">
+                <div class="modal-dialog">
+            
+                <div class="card">
+                   
+                    <img class="food-image card-img-top" src="" alt="food image">
+                    <div class="card-body modal-body">
+                        <h5 class="Food-modal card-title"><span></span></h5>
+                        <div class="Volumn-modal"><p>Volumn: </p><span></span></div>
+                        <div class="Calories-modal"><p>Calories: </p><span></span></div>
+                        <a href="#" class="btn btn-primary">Close</a>
+                    </div>
+                   
+                </div>
+            </div>
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
             <script defer type="text/javascript">
@@ -1557,7 +1357,7 @@ def Weight_Loss_Plan():
                         document.getElementById("carbohydrates").innerHTML = total_carbs.toFixed(1).toString();
                     }});
                 }}
-                $("input[name='case[]']").click(function(){{
+                $("input[name='case[]']").on('click',function(){{
                     calc_new();
                     var numberOfChecked = $("input[name='case[]']:checked").length;
 
@@ -1630,20 +1430,92 @@ def Weight_Loss_Plan():
                         $(data).find('td:eq(7)').text(carbohydrates_fixed.toFixed(1));
                         $(data).find('td:eq(8)').text(fibre_fixed.toFixed(1));
                         console.log(proteins_fixed)
-                        calc_new();
-                    
-
+                        calc_new(); 
                 }});
-
             </script>
+
+
+            <script defer type="text/javascript">
+                function calc_new1() {{
+                    console.log('abc');
+                    var valuesss = new Array();
+                    $.each($('.selected').find("tr:gt(0)"), function() {{
+                        var datass = $(this);
+                        console.log(datass);
+                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(1)').text(), 'Food_items':$(datass).find('td:eq(3)').text() , 'Calories':$(datass).find('td:eq(4)').text(),
+                                        'Fats':$(datass).find('td:eq(5)').text(), 'Proteins':$(datass).find('td:eq(6)').text(),
+                                        'Carbohydrates':$(datass).find('td:eq(7)').text(), 'Fibre':$(datass).find('td:eq(8)').text(),
+                                        }});               
+                    
+                                    
+                        console.log(valuesss);
+                        var total_calories = 0;
+                        var total_fats = 0;
+                        var total_proteins = 0;
+                        var total_carbs = 0;
+                
+                        for(var i = 0; i < valuesss.length; i++) {{
+                            total_calories = total_calories + parseFloat(valuesss[i]['Calories']);
+                            total_fats = total_fats + parseFloat(valuesss[i]['Fats']);
+                            total_proteins = total_proteins + parseFloat(valuesss[i]['Proteins']);
+                            total_carbs = total_carbs + parseFloat(valuesss[i]['Carbohydrates']);
+                        }}
+
+                        document.getElementById("calories").innerHTML = total_calories.toFixed(1).toString();
+                        document.getElementById("fats").innerHTML = total_fats.toFixed(1).toString();
+                        document.getElementById("proteins").innerHTML = total_proteins.toFixed(1).toString();
+                        document.getElementById("carbohydrates").innerHTML = total_carbs.toFixed(1).toString();
+                    }});
+                }}
+            
+                   $("#myTable tr").find("tr:gt(0)").on('click', function(){{
+                    $(this).toggleClass('selected');
+                    calc_new1();
+                    var numberOfChecked = $('.selected').length;
+
+                    if (numberOfChecked == 0) {{
+                        document.getElementById("calories").innerHTML = '0';
+                        document.getElementById("fats").innerHTML = '0';
+                        document.getElementById("proteins").innerHTML = '0';
+                        document.getElementById("carbohydrates").innerHTML = '0';
+                    }}
+                }});
+            </script>
+
+            <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+        <script defer type="text/javascript">
+
+                    $(document).ready(function() {{  
+                    var table = $('#myTable');
+                    $("#myTable").on('click','tr:gt(0)',function() {{
+                        $(".food-image").attr("src", $(this).find('img').attr('src'));
+                        $(".modal-body div span").text("");
+                        $(".Volumn-modal span").text($(this).find('td:eq(1)').text());
+                        $(".Food-modal span").text($(this).find('td:eq(3)').text());
+                        $(".Calories-modal span").text($(this).find('td:eq(4)').text());
+                        
+                        $("#myModal").modal("show");
+                    
+                }});
+                }});
+        </script>
+
         </html>"""
                                 )
 
     output_html = template.render(lunch_dataframe=lunch_df.to_html(classes='table table-striped', header="true", table_id="myTable1", escape=False ,formatters=dict(Image=path_to_image_html)),
-                breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
+                breakfast_dataframe=breakfast_df.to_html(classes='table', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,720,1900)  # JavaScript works
+    components.html(output_html,720,1900) 
 
 def Weight_Gain_Plan():
     print_user_input()
@@ -2747,7 +2619,7 @@ def Maintenance_Plan():
     components.html(output_html,720,1900)  # JavaScript works
 
 def Predict():
-    # print_prediction_input()
+    print_prediction_input()
 
     FoodItemIDData = food_data()
 
