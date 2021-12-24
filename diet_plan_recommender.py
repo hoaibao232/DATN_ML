@@ -27,7 +27,6 @@ LunchFoodDataNumpy=LunchFoodData.to_numpy()
 DinnerFoodData=data['Dinner']
 DinnerFoodDataNumpy=DinnerFoodData.to_numpy()
 FoodItemsData=data['Food_items']
-
 images = [
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639737354/Asparagus_Cooked_jh671t.jpg',
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639737354/Avocados_xh7avy.jpg',
@@ -999,6 +998,7 @@ def Weight_Loss_Plan():
     dinner_df = df
     array_test = df.to_numpy()
     
+    
     # st.dataframe(df)
 
     # Generate HTML from template.
@@ -1018,7 +1018,8 @@ def Weight_Loss_Plan():
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
                 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
                 <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
                 <style>
                     h2 {{
                         font-family: "Source Sans Pro", sans-serif;
@@ -1200,32 +1201,43 @@ def Weight_Loss_Plan():
                         color: #FFF;
                     }}
 
-                      .btn-purple {{
+                    .btn-purple {{
                     color: #fff;
                     background-color: #6f42c1;
                     border-color: #643ab0;
-                }}
-                .modal-body div{{float:left; width: 100%}}
-                .modal-body div p{{float:left; width: 20%; font-weight: 600;}}
-                .modal-body div span{{float:left; width: 80%}}
-                .modal {{
-                    position: absolute;
-                    top: 12%;
-                    right: 100px;
-                    bottom: 0;
-                    left: 0;
-                    z-index: 10040;
-                    overflow: auto;
-                    overflow-y: auto;
                     }}
-                .card-img-top {{
-                    width: 100%;
-                    height: 50vw;
-                    object-fit: cover;
-                }}
-                .modal-dialog {{
-                    width: 27rem;
-                    margin: 0 auto;
+
+                    
+                    .modal {{
+                        position: absolute;
+                        top: 12%;
+                        right: 100px;
+                        bottom: 0;
+                        left: 0;
+                        z-index: 10040;
+                        overflow: auto;
+                        overflow-y: auto;
+                        }}
+                    .card-img-top {{
+                        width: 100%;
+                        height: 50vw;
+                        object-fit: cover;
+                    }}
+                    .modal-dialog {{
+                        width: 27rem;
+                        margin: 0 auto;
+                        }}
+                    .progress {{margin-bottom:0;}}
+                    .start {{float:left;}}
+                    .end {{float:right; text-align:right;}}
+                    div p {{
+                        display: inline-block;
+                    }}
+                    div input {{
+                        display: inline-block;
+                    }}
+                    h5 {{
+                        text-align: center;
                     }}
                 </style>
             </head>
@@ -1238,6 +1250,46 @@ def Weight_Loss_Plan():
             </div>
 
             
+
+            <div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar" id="calories-intake" style="width: 0%;"></div>
+                    <div class="progress-bar bg-warning" id="calories-left" style="width:100%">
+                        Left: {total_calo}
+                    </div>
+                </div>
+                <div class="start">Calories Daily Intake</div>
+            </div>
+            <br>
+            <div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar" id="fats-intake" style="width: 0%;"></div>
+                    <div class="progress-bar bg-warning" id="fats-left" style="width:100%">
+                        Left: {total_fat}
+                    </div>
+                </div>
+                <div class="start">Fat Daily Intake</div>
+            </div>
+             <br>
+            <div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar" id="protein-intake" style="width: 0%;"></div>
+                    <div class="progress-bar bg-warning" id="protein-left" style="width:100%">
+                        Left: {total_protein}
+                    </div>
+                </div>
+                <div class="start">Protein Daily Intake</div>
+            </div>
+             <br>
+            <div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar" id="carb-intake" style="width: 0%;"></div>
+                    <div class="progress-bar bg-warning" id="carb-left" style="width:100%">
+                        Left: {total_carb}
+                    </div>
+                </div>
+                <div class="start">Carbohydrate Daily Intake</div>
+            </div>
             
             <body>
                 <h3>BREAKFAST</h3>
@@ -1249,19 +1301,42 @@ def Weight_Loss_Plan():
     
             </body>
 
-            <div class="modal hide fade" id="myModal" role="dialog" aria-hidden="true">
+            <div class="modal fade" id="myModal" role="dialog" aria-hidden="true">
                 <div class="modal-dialog">
-            
-                <div class="card">
-                   
-                    <img class="food-image card-img-top" src="" alt="food image">
-                    <div class="card-body modal-body">
-                        <h5 class="Food-modal card-title"><span></span></h5>
-                        <div class="Volumn-modal"><p>Volumn: </p><span></span></div>
-                        <div class="Calories-modal"><p>Calories: </p><span></span></div>
-                        <a href="#" class="btn btn-primary">Close</a>
+                <div class="modal-content">
+                    <div class="card">
+                        <img class="food-image card-img-top" src="" alt="food image">
+                        <div class="card-body">
+                            <h5 class="Food-modal card-title"><span></span></h5>
+                            <br>
+                            <div class="row">
+                                <div class="Volumn-modal col-sm-3"><p>Volumn: </p></div>
+                                <div class="col-sm-9">
+                                    <input type="number" class="form-control form-control-sm" id="volumn-input">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="Calories-modal"><p>Calories:  </p><span></span></div>
+                                    <div class="Protein-modal"><p>Protein:  </p><span></span>g</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="Fat-modal"><p>Fat:</p><span></span>g</div>
+                                    <div class="Carbohydrate-modal"><p>Carbohydrate:  </p><span></span>g</div>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <div class="col text-center">
+                                    <a href="#" class="btn btn-primary" id="btn-modal-save">Select</a>
+                                    <a href="#" class="btn btn-secondary" data-dismiss="modal" id="btn-modal-close">Close</a>
+                                </div>
+                            </div>
+                            
+                        </div>
                     </div>
-                   
+                    </div>
                 </div>
             </div>
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -1325,7 +1400,7 @@ def Weight_Loss_Plan():
                     }}
                     $('td[contenteditable]').addClass('volumn_editable');
             </script>
-
+            
             <script defer type="text/javascript">
                 function calc_new() {{
                     var valuess = new Array();
@@ -1355,6 +1430,59 @@ def Weight_Loss_Plan():
                         document.getElementById("fats").innerHTML = total_fats.toFixed(1).toString();
                         document.getElementById("proteins").innerHTML = total_proteins.toFixed(1).toString();
                         document.getElementById("carbohydrates").innerHTML = total_carbs.toFixed(1).toString();
+
+                        var calories_ratio_percentage = (total_calories/{total_calo}).toFixed(1)*100;
+                        var fat_ratio_percentage = (total_fats/{total_fat}).toFixed(1)*100;
+                        var protein_ratio_percentage = (total_proteins/{total_protein}).toFixed(1)*100;
+                        var carb_ratio_percentage = (total_carbs/{total_carb}).toFixed(1)*100;
+                       
+                        if (total_calories > {total_calo})
+                        {{
+                            $('#calories-intake').addClass('bg-danger');
+                            $('#calories-intake').css("width", 100 + "%").text("Excess calories: " + (total_calories - {total_calo}).toFixed(1));
+                            $("#calories-left").css("width", 0 + "%").text("Calorties left: " + ({total_calo} - total_calories).toFixed(1));
+                        }}
+                        else {{
+                            $('#calories-intake').removeClass('bg-danger');
+                            $("#calories-intake").css("width", calories_ratio_percentage + "%").text("Intake: " + total_calories.toFixed(1));
+                            $("#calories-left").css("width", 100-calories_ratio_percentage + "%").text("Calorties left: " + ({total_calo} - total_calories).toFixed(1));
+                        }}
+
+                        if (total_fats > {total_fat})
+                        {{
+                            $('#fats-intake').addClass('bg-danger');
+                            $('#fats-intake').css("width", 100 + "%").text("Excess fat: " + (total_fats - {total_fat}).toFixed(1));
+                            $("#fats-left").css("width", 0 + "%").text("Fat left: " + ({total_fat} - total_fats).toFixed(1));
+                        }}
+                        else {{
+                            $('#fats-intake').removeClass('bg-danger');
+                            $("#fats-intake").css("width", fat_ratio_percentage + "%").text("Intake: " + total_fats.toFixed(1));
+                            $("#fats-left").css("width", 100-fat_ratio_percentage + "%").text("Fat left: " + ({total_fat} - total_fats).toFixed(1));
+                        }}
+
+                        if (total_proteins > {total_protein})
+                        {{
+                            $('#protein-intake').addClass('bg-danger');
+                            $('#protein-intake').css("width", 100 + "%").text("Excess protein: " + (total_proteins - {total_protein}).toFixed(1));
+                            $("#protein-left").css("width", 0 + "%").text("Protein left: " + ({total_protein} - total_proteins).toFixed(1));
+                        }}
+                        else {{
+                            $('#protein-intake').removeClass('bg-danger');
+                            $("#protein-intake").css("width", protein_ratio_percentage + "%").text("Intake: " + total_proteins.toFixed(1));
+                            $("#protein-left").css("width", 100-protein_ratio_percentage + "%").text("Protein left: " + ({total_protein} - total_proteins).toFixed(1));
+                        }}
+
+                        if (total_carbs > {total_carb})
+                        {{
+                            $('#carb-intake').addClass('bg-danger');
+                            $('#carb-intake').css("width", 100 + "%").text("Excess carbohydrate: " + (total_carbs - {total_carb}).toFixed(1));
+                            $("#carb-left").css("width", 0 + "%").text("Carbohydrate left: " + ({total_carb} - total_carbs).toFixed(1));
+                        }}
+                        else {{
+                            $('#carb-intake').removeClass('bg-danger');
+                            $("#carb-intake").css("width", carb_ratio_percentage + "%").text("Intake: " + total_carbs.toFixed(1));
+                            $("#carb-left").css("width", 100-carb_ratio_percentage + "%").text("Carbohydrate left: " + ({total_carb} - total_carbs).toFixed(1));
+                        }}
                     }});
                 }}
                 $("input[name='case[]']").on('click',function(){{
@@ -1433,7 +1561,67 @@ def Weight_Loss_Plan():
                         calc_new(); 
                 }});
             </script>
+            
+            <script defer type="text/javascript">
+                var first_load = true;
+                var ratio_old = 0;
+                var calo_fixed = 0;
+                var fats_fixed = 0;
+                var proteins_fixed = 0;
+                var carbohydrates_fixed = 0;
+                var fibre_fixed = 0;
 
+                var ratio = 0; 
+                var calories = 0; 
+                var fats = 0; 
+                var proteins = 0; 
+                var carbohydrates = 0; 
+                var fibre = 0; 
+
+                var new_ratio = 0;
+
+                $("#volumn-input").on("focus", function() {{
+                    var values = new Array();
+
+                    var data = $(event.target);
+                    console.log($(this).val())
+                    console.log($('.Calories-modal').text());
+                    
+                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
+                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
+                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
+                                        }});    
+
+                    ratio_old = parseFloat(values[0]['Volumn']);
+                    console.log(ratio_old)
+                                                
+                }});
+                
+                $("#volumn-input").on("blur", function() {{
+                    var values = new Array();
+
+                    var data = $(event.target);
+                    
+                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
+                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
+                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
+                                        }});     
+
+                        ratio = parseFloat(values[0]['Volumn']) / ratio_old;
+                        calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
+                        fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
+                        proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
+                        carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
+
+                        console.log((values[0]));
+
+                        $(".Calories-modal span").text(calo_fixed.toFixed(1));
+                        $('.Fat-modal span').text(fats_fixed.toFixed(1));
+                        $('.Protein-modal span').text(proteins_fixed.toFixed(1));
+                        $('.Carbohydrate-modal span').text(carbohydrates_fixed.toFixed(1));
+                        calc_new(); 
+                }});
+            </script>
 
             <script defer type="text/javascript">
                 function calc_new1() {{
@@ -1483,27 +1671,29 @@ def Weight_Loss_Plan():
             </script>
 
             <!-- jQuery library -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-        <!-- Latest compiled JavaScript -->
-        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-        <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-        <script defer type="text/javascript">
+            <!-- Latest compiled JavaScript -->
+            <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+            <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+            <script defer type="text/javascript">
 
-                    $(document).ready(function() {{  
-                    var table = $('#myTable');
-                    $("#myTable").on('click','tr:gt(0)',function() {{
-                        $(".food-image").attr("src", $(this).find('img').attr('src'));
-                        $(".modal-body div span").text("");
-                        $(".Volumn-modal span").text($(this).find('td:eq(1)').text());
-                        $(".Food-modal span").text($(this).find('td:eq(3)').text());
-                        $(".Calories-modal span").text($(this).find('td:eq(4)').text());
-                        
-                        $("#myModal").modal("show");
+                $(document).ready(function() {{  
+                var table = $('#myTable');
+                $("#myTable").on('click','tr:gt(0)',function() {{
+                    $(".food-image").attr("src", $(this).find('img').attr('src'));
+                    $(".card-body div span").text("");
+                    $(".col-sm-9 input").val($(this).find('td:eq(1)').text());
+                    $(".Food-modal span").text(" " + $(this).find('td:eq(3)').text());
+                    $(".Calories-modal span").text(" " + $(this).find('td:eq(4)').text());
+                    $(".Fat-modal span").text(" " + $(this).find('td:eq(5)').text());
+                    $(".Protein-modal span").text(" " + $(this).find('td:eq(6)').text());
+                    $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(7)').text());
                     
+                    $("#myModal").modal("show");
                 }});
                 }});
         </script>
@@ -2790,4 +2980,3 @@ with user_input:
         food_carb = st.sidebar.text_input("Enter the grams of carbohydrate!", '23')
 
         st.sidebar.button('Do it now!', on_click=Predict)
-
