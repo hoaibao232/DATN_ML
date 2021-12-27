@@ -573,8 +573,7 @@ def Weight_Loss_Plan():
             rows_list.append(row)
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -938,8 +937,7 @@ def Weight_Loss_Plan():
     # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
     
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -988,8 +986,7 @@ def Weight_Loss_Plan():
     # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -1329,8 +1326,8 @@ def Weight_Loss_Plan():
                             <br>
                             <div class="row">
                                 <div class="col text-center">
-                                    <a href="#" class="btn btn-primary" id="btn-modal-save">Select</a>
-                                    <a href="#" class="btn btn-secondary" data-dismiss="modal" id="btn-modal-close">Close</a>
+                                    <button class="btn btn-primary" id="btn-modal-save">Select</button>
+                                    <button class="btn btn-secondary" id="btn-modal-close"> Close</button>
                                 </div>
                             </div>
                             
@@ -1343,87 +1340,189 @@ def Weight_Loss_Plan():
 
             <script defer type="text/javascript">
                 let myTable = new simpleDatatables.DataTable("#myTable", {{paging:false}});
-            
-                    var $rows = $('#myTable tr');
-                    console.log($rows.length)
-                    for (var i = 0; i < $rows.length; i++) {{
-                        var checkbox = document.createElement("INPUT"); //Added for checkbox
-                        checkbox.name = "case[]"
-                        checkbox.type = "checkbox"; //Added for checkbox
-                        
-                        if(i == 0) {{
-                            var br = document.createElement("br");
-                            $rows[i].cells[1].appendChild(br);
-                        }}
-                        $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
-                        $rows[i].cells[2].contentEditable = "true";
-                    }}
-                    $('td[contenteditable]').addClass('volumn_editable');
             </script>
 
             <script defer type="text/javascript">
                 let myTable1 = new simpleDatatables.DataTable("#myTable1", {{paging:false}});
-            
-                    var $rows = $('#myTable1 tr');
-                    console.log($rows.length)
-                    for (var i = 0; i < $rows.length; i++) {{
-                        var checkbox = document.createElement("INPUT"); //Added for checkbox
-                        checkbox.name = "case[]"
-                        checkbox.type = "checkbox"; //Added for checkbox
-                        
-                        if(i == 0) {{
-                            var br = document.createElement("br");
-                            $rows[i].cells[1].appendChild(br);
-                        }}
-                        $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
-                        $rows[i].cells[2].contentEditable = "true";
-                    }}
-                    $('td[contenteditable]').addClass('volumn_editable');
             </script>
 
             <script defer type="text/javascript">
                 let myTable2 = new simpleDatatables.DataTable("#myTable2", {{paging:false}});
-            
-                    var $rows = $('#myTable2 tr');
-                    console.log($rows.length)
-                    for (var i = 0; i < $rows.length; i++) {{
-                        var checkbox = document.createElement("INPUT"); //Added for checkbox
-                        checkbox.name = "case[]"
-                        checkbox.type = "checkbox"; //Added for checkbox
-                        
-                        if(i == 0) {{
-                            var br = document.createElement("br");
-                            $rows[i].cells[1].appendChild(br);
-                        }}
-                        $rows[i].cells[1].appendChild(checkbox); //Added for checkbox
-                        $rows[i].cells[2].contentEditable = "true";
-                    }}
-                    $('td[contenteditable]').addClass('volumn_editable');
             </script>
             
             <script defer type="text/javascript">
-                function calc_new() {{
-                    var valuess = new Array();
-                    $.each($("input[name='case[]']:checked"), function() {{
-                        var datas = $(this).parents('tr:eq(0)');
-                        console.log(datas);
-                        valuess.push({{ 'Volumn':$(datas).find('td:eq(1)').text(), 'Food_items':$(datas).find('td:eq(3)').text() , 'Calories':$(datas).find('td:eq(4)').text(),
-                                        'Fats':$(datas).find('td:eq(5)').text(), 'Proteins':$(datas).find('td:eq(6)').text(),
-                                        'Carbohydrates':$(datas).find('td:eq(7)').text(), 'Fibre':$(datas).find('td:eq(8)').text(),
+                var first_load = true;
+                var ratio_old = 0;
+                var calo_fixed = 0;
+                var fats_fixed = 0;
+                var proteins_fixed = 0;
+                var carbohydrates_fixed = 0;
+                var fibre_fixed = 0;
+
+                var ratio = 0; 
+                var calories = 0; 
+                var fats = 0; 
+                var proteins = 0; 
+                var carbohydrates = 0; 
+                var fibre = 0; 
+
+                var new_ratio = 0;
+
+                var tr1;
+
+                $("#volumn-input").on("focus", function() {{
+                    var values = new Array();
+                    var data = $(event.target);
+                    
+                    
+                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
+                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
+                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
+                                        }});    
+
+                    ratio_old = parseFloat(values[0]['Volumn']);
+                                                
+                }});
+
+                $(document).on("blur", "#volumn-input", function() {{
+                    var values = new Array();
+
+                    var data = $(event.target);
+                    
+                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
+                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
+                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
+                                        }});     
+
+                    ratio = parseFloat(values[0]['Volumn']) / ratio_old;
+                    calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
+                    fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
+                    proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
+                    carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
+
+                    $(".Calories-modal span").text(calo_fixed.toFixed(1));
+                    $('.Fat-modal span').text(fats_fixed.toFixed(1));
+                    $('.Protein-modal span').text(proteins_fixed.toFixed(1));
+                    $('.Carbohydrate-modal span').text(carbohydrates_fixed.toFixed(1));
+                    
+
+                    var food_name = $('.Food-modal span').text();
+                    food_name = food_name.replace(/^\s+|\s+$/gm,'')
+
+                    var a = $('#myTable tr td:contains("' + food_name + '")').filter(function(){{
+                        console.log($.trim($(this).text()));
+                        if($.trim($(this).text()) == food_name)
+                        return true;
+                        else
+                        return false;
+                    }});
+                    var tr = $(a).parents('tr:eq(0)');
+                    tr1 = tr;
+
+                   
+                }});
+                
+                $(document).on("click", "#btn-modal-save", function() {{
+                    var values = new Array();
+                    var data = $(event.target);
+                    
+                    
+                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
+                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
+                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
+                                        }});    
+
+                    ratio_old = parseFloat(values[0]['Volumn']);
+
+                    var values = new Array();
+
+                    var data = $(event.target);
+                    
+                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
+                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
+                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
+                                        }});     
+
+                    ratio = parseFloat(values[0]['Volumn']) / ratio_old;
+                    calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
+                    fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
+                    proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
+                    carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
+
+                    $(".Calories-modal span").text(calo_fixed.toFixed(1));
+                    $('.Fat-modal span').text(fats_fixed.toFixed(1));
+                    $('.Protein-modal span').text(proteins_fixed.toFixed(1));
+                    $('.Carbohydrate-modal span').text(carbohydrates_fixed.toFixed(1));
+                    
+
+                    var food_name = $('.Food-modal span').text();
+                    food_name = food_name.replace(/^\s+|\s+$/gm,'')
+
+                    var a = $('#myTable tr td:contains("' + food_name + '")').filter(function(){{
+                        console.log($.trim($(this).text()));
+                        if($.trim($(this).text()) == food_name)
+                        return true;
+                        else
+                        return false;
+                    }});
+                    var tr = $(a).parents('tr:eq(0)');
+                    tr1 = tr;
+
+                    $(tr).find('td:eq(0)').text($('#volumn-input').val());
+                    $(tr).find('td:eq(3)').text(calo_fixed.toFixed(1));
+                    $(tr).find('td:eq(4)').text(fats_fixed.toFixed(1));
+                    $(tr).find('td:eq(5)').text(proteins_fixed.toFixed(1));
+                    $(tr).find('td:eq(6)').text(carbohydrates_fixed.toFixed(1));
+                    
+                    $(tr1).addClass("selected");
+                    calc_new1();
+                }});
+
+
+            </script>
+
+            <script defer type="text/javascript">
+                function calc_new1() {{
+                    console.log('def')
+                    var valuesss = new Array();
+                    var selected_rowss = document.getElementsByClassName("selected");
+
+                    var numberOfChecked = selected_rowss.length;
+                    if (numberOfChecked == 0) {{
+                            $("#calories-intake").css("width", 0 + "%").text("Intake: " +0);
+                            $("#calories-left").css("width", 100 + "%").text("Calorties left: " + ({total_calo}).toFixed(1));
+
+                            $("#fats-intake").css("width", 0 + "%").text("Intake: " + 0);
+                            $("#fats-left").css("width", 100 + "%").text("Fat left: " + ({total_fat}).toFixed(1));
+
+                            $("#protein-intake").css("width", 0 + "%").text("Intake: " + 0);
+                            $("#protein-left").css("width", 100 + "%").text("Protein left: " + ({total_protein}).toFixed(1));
+
+                            $("#carb-intake").css("width", 0 + "%").text("Intake: " + 0);
+                            $("#carb-left").css("width", 100 + "%").text("Carbohydrate left: " + ({total_carb}).toFixed(1));
+                        }}
+
+                    $.each(selected_rowss, function() {{
+                        console.log('abcddd');
+                        var datass = $(this);
+                        console.log(datass);
+                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
+                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
+                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
                                         }});               
                     
                                     
-                        console.log(valuess);
+                        console.log(valuesss);
                         var total_calories = 0;
                         var total_fats = 0;
                         var total_proteins = 0;
                         var total_carbs = 0;
                 
-                        for(var i = 0; i < valuess.length; i++) {{
-                            total_calories = total_calories + parseFloat(valuess[i]['Calories']);
-                            total_fats = total_fats + parseFloat(valuess[i]['Fats']);
-                            total_proteins = total_proteins + parseFloat(valuess[i]['Proteins']);
-                            total_carbs = total_carbs + parseFloat(valuess[i]['Carbohydrates']);
+                        for(var i = 0; i < valuesss.length; i++) {{
+                            total_calories = total_calories + parseFloat(valuesss[i]['Calories']);
+                            total_fats = total_fats + parseFloat(valuesss[i]['Fats']);
+                            total_proteins = total_proteins + parseFloat(valuesss[i]['Proteins']);
+                            total_carbs = total_carbs + parseFloat(valuesss[i]['Carbohydrates']);
                         }}
 
                         document.getElementById("calories").innerHTML = total_calories.toFixed(1).toString();
@@ -1435,13 +1534,14 @@ def Weight_Loss_Plan():
                         var fat_ratio_percentage = (total_fats/{total_fat}).toFixed(1)*100;
                         var protein_ratio_percentage = (total_proteins/{total_protein}).toFixed(1)*100;
                         var carb_ratio_percentage = (total_carbs/{total_carb}).toFixed(1)*100;
-                       
+
                         if (total_calories > {total_calo})
                         {{
                             $('#calories-intake').addClass('bg-danger');
                             $('#calories-intake').css("width", 100 + "%").text("Excess calories: " + (total_calories - {total_calo}).toFixed(1));
                             $("#calories-left").css("width", 0 + "%").text("Calorties left: " + ({total_calo} - total_calories).toFixed(1));
                         }}
+                       
                         else {{
                             $('#calories-intake').removeClass('bg-danger');
                             $("#calories-intake").css("width", calories_ratio_percentage + "%").text("Intake: " + total_calories.toFixed(1));
@@ -1483,191 +1583,25 @@ def Weight_Loss_Plan():
                             $("#carb-intake").css("width", carb_ratio_percentage + "%").text("Intake: " + total_carbs.toFixed(1));
                             $("#carb-left").css("width", 100-carb_ratio_percentage + "%").text("Carbohydrate left: " + ({total_carb} - total_carbs).toFixed(1));
                         }}
-                    }});
-                }}
-                $("input[name='case[]']").on('click',function(){{
-                    calc_new();
-                    var numberOfChecked = $("input[name='case[]']:checked").length;
 
-                    if (numberOfChecked == 0) {{
-                        document.getElementById("calories").innerHTML = '0';
-                        document.getElementById("fats").innerHTML = '0';
-                        document.getElementById("proteins").innerHTML = '0';
-                        document.getElementById("carbohydrates").innerHTML = '0';
-                    }}
-                }});
-            </script>
+                        
 
-            <script defer type="text/javascript">
-                var first_load = true;
-                var ratio_old = 0;
-                var calo_fixed = 0;
-                var fats_fixed = 0;
-                var proteins_fixed = 0;
-                var carbohydrates_fixed = 0;
-                var fibre_fixed = 0;
-
-                var ratio = 0; 
-                var calories = 0; 
-                var fats = 0; 
-                var proteins = 0; 
-                var carbohydrates = 0; 
-                var fibre = 0; 
-
-                var new_ratio = 0;
-
-                $("td[contenteditable]").on("focus", function() {{
-                    var values = new Array();
-
-                    var data = $(event.target).closest('tr');
-                    
-                    values.push({{ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(3)').text() , 'Calories':$(data).find('td:eq(4)').text(),
-                                        'Fats':$(data).find('td:eq(5)').text(), 'Proteins':$(data).find('td:eq(6)').text(),
-                                        'Carbohydrates':$(data).find('td:eq(7)').text(), 'Fibre':$(data).find('td:eq(8)').text(),
-                                        }});    
-
-                    ratio_old = parseFloat(values[0]['Volumn']);
-                    console.log(ratio_old)
-                                                
-                }});
-                
-                $("td[contenteditable]").on("blur", function() {{
-                    var values = new Array();
-
-                    var data = $(event.target).closest('tr');
-                    
-                    values.push({{ 'Volumn':$(data).find('td:eq(1)').text(), 'Food_items':$(data).find('td:eq(3)').text() , 'Calories':$(data).find('td:eq(4)').text(),
-                                        'Fats':$(data).find('td:eq(5)').text(), 'Proteins':$(data).find('td:eq(6)').text(),
-                                        'Carbohydrates':$(data).find('td:eq(7)').text(), 'Fibre':$(data).find('td:eq(8)').text(),
-                                        }});     
-
-                        ratio = parseFloat(values[0]['Volumn']) / ratio_old;
-                        calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
-                        fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
-                        proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
-                        carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
-                        fibre_fixed = (parseFloat(values[0]['Fibre']) * ratio);
-
-                        console.log(ratio);
-                        console.log(new_ratio);
-                    
-                    
-                        $(data).find('td:eq(4)').text(calo_fixed.toFixed(1));
-                        $(data).find('td:eq(5)').text(fats_fixed.toFixed(1));
-                        $(data).find('td:eq(6)').text(proteins_fixed.toFixed(1));
-                        $(data).find('td:eq(7)').text(carbohydrates_fixed.toFixed(1));
-                        $(data).find('td:eq(8)').text(fibre_fixed.toFixed(1));
-                        console.log(proteins_fixed)
-                        calc_new(); 
-                }});
-            </script>
-            
-            <script defer type="text/javascript">
-                var first_load = true;
-                var ratio_old = 0;
-                var calo_fixed = 0;
-                var fats_fixed = 0;
-                var proteins_fixed = 0;
-                var carbohydrates_fixed = 0;
-                var fibre_fixed = 0;
-
-                var ratio = 0; 
-                var calories = 0; 
-                var fats = 0; 
-                var proteins = 0; 
-                var carbohydrates = 0; 
-                var fibre = 0; 
-
-                var new_ratio = 0;
-
-                $("#volumn-input").on("focus", function() {{
-                    var values = new Array();
-
-                    var data = $(event.target);
-                    console.log($(this).val())
-                    console.log($('.Calories-modal').text());
-                    
-                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
-                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
-                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
-                                        }});    
-
-                    ratio_old = parseFloat(values[0]['Volumn']);
-                    console.log(ratio_old)
-                                                
-                }});
-                
-                $("#volumn-input").on("blur", function() {{
-                    var values = new Array();
-
-                    var data = $(event.target);
-                    
-                    values.push({{ 'Volumn':$('#volumn-input').val(), 'Food_items':$('.Food-modal span').text() , 'Calories':$('.Calories-modal span').text(),
-                                        'Fats':$('.Fat-modal span').text(), 'Proteins':$('.Protein-modal span').text(),
-                                        'Carbohydrates':$('.Carbohydrate-modal span').text(),
-                                        }});     
-
-                        ratio = parseFloat(values[0]['Volumn']) / ratio_old;
-                        calo_fixed = (parseFloat(values[0]['Calories']) * ratio);
-                        fats_fixed = (parseFloat(values[0]['Fats']) * ratio);
-                        proteins_fixed = (parseFloat(values[0]['Proteins']) * ratio);
-                        carbohydrates_fixed = (parseFloat(values[0]['Carbohydrates']) * ratio);
-
-                        console.log((values[0]));
-
-                        $(".Calories-modal span").text(calo_fixed.toFixed(1));
-                        $('.Fat-modal span').text(fats_fixed.toFixed(1));
-                        $('.Protein-modal span').text(proteins_fixed.toFixed(1));
-                        $('.Carbohydrate-modal span').text(carbohydrates_fixed.toFixed(1));
-                        calc_new(); 
-                }});
-            </script>
-
-            <script defer type="text/javascript">
-                function calc_new1() {{
-                    console.log('abc');
-                    var valuesss = new Array();
-                    $.each($('.selected').find("tr:gt(0)"), function() {{
-                        var datass = $(this);
-                        console.log(datass);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(1)').text(), 'Food_items':$(datass).find('td:eq(3)').text() , 'Calories':$(datass).find('td:eq(4)').text(),
-                                        'Fats':$(datass).find('td:eq(5)').text(), 'Proteins':$(datass).find('td:eq(6)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(7)').text(), 'Fibre':$(datass).find('td:eq(8)').text(),
-                                        }});               
-                    
-                                    
-                        console.log(valuesss);
-                        var total_calories = 0;
-                        var total_fats = 0;
-                        var total_proteins = 0;
-                        var total_carbs = 0;
-                
-                        for(var i = 0; i < valuesss.length; i++) {{
-                            total_calories = total_calories + parseFloat(valuesss[i]['Calories']);
-                            total_fats = total_fats + parseFloat(valuesss[i]['Fats']);
-                            total_proteins = total_proteins + parseFloat(valuesss[i]['Proteins']);
-                            total_carbs = total_carbs + parseFloat(valuesss[i]['Carbohydrates']);
+                        if (numberOfChecked == 0) {{
+                            document.getElementById("calories").innerHTML = '0';
+                            document.getElementById("fats").innerHTML = '0';
+                            document.getElementById("proteins").innerHTML = '0';
+                            document.getElementById("carbohydrates").innerHTML = '0';
                         }}
 
-                        document.getElementById("calories").innerHTML = total_calories.toFixed(1).toString();
-                        document.getElementById("fats").innerHTML = total_fats.toFixed(1).toString();
-                        document.getElementById("proteins").innerHTML = total_proteins.toFixed(1).toString();
-                        document.getElementById("carbohydrates").innerHTML = total_carbs.toFixed(1).toString();
+                        $("#myModal").modal("hide");
                     }});
                 }}
-            
-                   $("#myTable tr").find("tr:gt(0)").on('click', function(){{
-                    $(this).toggleClass('selected');
-                    calc_new1();
-                    var numberOfChecked = $('.selected').length;
+            </script>
 
-                    if (numberOfChecked == 0) {{
-                        document.getElementById("calories").innerHTML = '0';
-                        document.getElementById("fats").innerHTML = '0';
-                        document.getElementById("proteins").innerHTML = '0';
-                        document.getElementById("carbohydrates").innerHTML = '0';
-                    }}
-                }});
+            <script defer type="text/javascript">
+                $('#btn-modal-close').on('click', function() {{
+                    $("#myModal").modal("hide");
+                }})
             </script>
 
             <!-- jQuery library -->
@@ -1679,24 +1613,30 @@ def Weight_Loss_Plan():
             <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
             <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
             <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-            <script defer type="text/javascript">
 
+            <script defer type="text/javascript">
                 $(document).ready(function() {{  
                 var table = $('#myTable');
                 $("#myTable").on('click','tr:gt(0)',function() {{
+                    if($(this).hasClass('selected')) {{
+                        $(this).removeClass('selected');
+                        calc_new1();
+                        return;
+                    }}
+
                     $(".food-image").attr("src", $(this).find('img').attr('src'));
                     $(".card-body div span").text("");
-                    $(".col-sm-9 input").val($(this).find('td:eq(1)').text());
-                    $(".Food-modal span").text(" " + $(this).find('td:eq(3)').text());
-                    $(".Calories-modal span").text(" " + $(this).find('td:eq(4)').text());
-                    $(".Fat-modal span").text(" " + $(this).find('td:eq(5)').text());
-                    $(".Protein-modal span").text(" " + $(this).find('td:eq(6)').text());
-                    $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(7)').text());
+                    $(".col-sm-9 input").val($(this).find('td:eq(0)').text());
+                    $(".Food-modal span").text(" " + $(this).find('td:eq(2)').text());
+                    $(".Calories-modal span").text(" " + $(this).find('td:eq(3)').text());
+                    $(".Fat-modal span").text(" " + $(this).find('td:eq(4)').text());
+                    $(".Protein-modal span").text(" " + $(this).find('td:eq(5)').text());
+                    $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(6)').text());
                     
                     $("#myModal").modal("show");
                 }});
                 }});
-        </script>
+            </script>
 
         </html>"""
                                 )
@@ -1769,8 +1709,7 @@ def Weight_Gain_Plan():
     # print(abc)
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -1831,8 +1770,7 @@ def Weight_Gain_Plan():
     # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -1883,8 +1821,7 @@ def Weight_Gain_Plan():
     # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -2318,8 +2255,7 @@ def Maintenance_Plan():
     # print(abc)
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -2380,8 +2316,7 @@ def Maintenance_Plan():
     # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
@@ -2433,8 +2368,7 @@ def Maintenance_Plan():
     # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
     df = pd.DataFrame(rows_list)
-    df.insert(loc = 0,column = 'Select',value = '')
-    df.insert(loc = 1,column = 'Volume (g)',value = '100')
+    df.insert(loc = 0,column = 'Volume (g)',value = '100')
 
     df.append(df, ignore_index = True, sort = False)
 
