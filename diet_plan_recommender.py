@@ -17,6 +17,12 @@ from bokeh.plotting import figure
 from streamlit_bokeh_events import streamlit_bokeh_events
 import streamlit.components.v1 as components
 import jinja2
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve, f1_score
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import seaborn as sns
+import os
 
 # read dataset
 data=pd.read_csv('food.csv')
@@ -353,23 +359,22 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
     #Importing the standard scaler module and applying it on continuous variables
     BreakfastDatacalorie=BreakfastFoodItemIDData[0:,2:len(BreakfastFoodItemIDData)] #nutrion data
     BreakfastDatacalorie=BreakfastDatacalorie[:, :-1]
+    BreakfastDatacalorie = BreakfastDatacalorie[:, [0,1,2,7,8]]
     print(BreakfastDatacalorie)
 
     S = StandardScaler()
     breakfast_scaled_data = S.fit_transform(BreakfastDatacalorie)
-    breakfast_scaled_data1 = breakfast_scaled_data
-    breakfast_scaled_data2 = breakfast_scaled_data
 
     # First, test Kmeans with clusters=3
-    k_means_breakfast = KMeans(n_clusters=3, random_state=0)
-    k_means_breakfast.fit_predict(breakfast_scaled_data)
+    k_means_breakfast = KMeans(init="k-means++", n_clusters=3, n_init=50, max_iter=500, random_state=42)
+    k_means_breakfast.fit(breakfast_scaled_data)
     brklbl=k_means_breakfast.labels_
 
     #To determine the optimum number of clusters, check the wss score for a given range of k
     wss =[] 
     for i in range(1,11):
-        KM_Breakfast = KMeans(n_clusters=i, random_state=0)
-        KM_Breakfast.fit_predict(breakfast_scaled_data1)
+        KM_Breakfast = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
+        KM_Breakfast.fit(breakfast_scaled_data)
         wss.append(KM_Breakfast.inertia_)
     # st.write(wss)
     fig = plt.figure(figsize = (10, 5))
@@ -377,12 +382,12 @@ def breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastFoodItem_Test):
     st.pyplot(fig)
 
     #Checking for n-clusters=3
-    k_means_three_breakfast = KMeans(n_clusters = 3, random_state=0)
-    k_means_three_breakfast.fit_predict(breakfast_scaled_data2)
+    k_means_three_breakfast = KMeans(init="k-means++", n_clusters=3, n_init=50, max_iter=500, random_state=42)
+    k_means_three_breakfast.fit(breakfast_scaled_data)
     print('WSS for K=3:', k_means_three_breakfast.inertia_)
     labels_three = k_means_three_breakfast.labels_
     #Calculating silhouette_score for k=3
-    st.write(silhouette_score(breakfast_scaled_data2, labels_three))
+    st.write(silhouette_score(breakfast_scaled_data, labels_three))
 
     # Overview data in clusters
     length = len(BreakfastFoodItemIDData) + 2
@@ -398,25 +403,26 @@ def lunch_cluster_food(LunchFoodItemIDdata, LunchFoodItem_Test):
     ####### K-MEANS FOR LUNCH FOOD
     LunchDatacalorie=LunchFoodItemIDdata[0:,2:len(LunchFoodItemIDdata)]
     LunchDatacalorie=LunchDatacalorie[:, :-1]
+    LunchDatacalorie = LunchDatacalorie[:, [0,1,2,7,8]]
     L = StandardScaler()
     lunch_scaled_data = L.fit_transform(LunchDatacalorie)
 
-    k_means_lunch = KMeans(n_clusters=3, random_state=0)
-    k_means_lunch.fit_predict(lunch_scaled_data)
+    k_means_lunch = KMeans(init="k-means++", n_clusters=3, n_init=50, max_iter=500, random_state=42)
+    k_means_lunch.fit(lunch_scaled_data)
     lnchlbl=k_means_lunch.labels_
 
     wss =[] 
     for i in range(1,11):
-        KM_Lunch = KMeans(n_clusters=i, random_state=0)
-        KM_Lunch.fit_predict(lunch_scaled_data)
+        KM_Lunch = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
+        KM_Lunch.fit(lunch_scaled_data)
         wss.append(KM_Lunch.inertia_)
     # st.write(wss)
     fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
     st.pyplot(fig)
 
-    k_means_three_lunch = KMeans(n_clusters = 3, random_state=0)
-    k_means_three_lunch.fit_predict(lunch_scaled_data)
+    k_means_three_lunch = KMeans(init="k-means++", n_clusters=3, n_init=50, max_iter=500, random_state=42)
+    k_means_three_lunch.fit(lunch_scaled_data)
     print('WSS for K=3:', k_means_three_lunch.inertia_)
     labels_three = k_means_three_lunch.labels_
     st.write(silhouette_score(lunch_scaled_data, labels_three))
@@ -434,32 +440,33 @@ def dinner_cluster_food(DinnerFoodItemIDdata, DinnerFoodItem_Test):
     ####### K-MEANS FOR DINNER FOOD
     DinnerDatacalorie=DinnerFoodItemIDdata[0:,2:len(DinnerFoodItemIDdata)] #nutrion data
     DinnerDatacalorie=DinnerDatacalorie[:, :-1]
+    DinnerDatacalorie = DinnerDatacalorie[:, [0,1,2,7,8]]
     D = StandardScaler()
     dinner_scaled_data = D.fit_transform(DinnerDatacalorie)
 
-    k_means_dinner = KMeans(n_clusters=3, random_state=0)
-    k_means_dinner.fit_predict(dinner_scaled_data)
+    k_means_dinner = KMeans(init="k-means++", n_clusters=3, n_init=50, max_iter=500, random_state=42)
+    k_means_dinner.fit(dinner_scaled_data)
     dnrlbl=k_means_dinner.labels_
 
     wss =[] 
     for i in range(1,11):
-        KM_Dinner = KMeans(n_clusters=i, random_state=0)
-        KM_Dinner.fit_predict(dinner_scaled_data)
+        KM_Dinner = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
+        KM_Dinner.fit(dinner_scaled_data)
         wss.append(KM_Dinner.inertia_)
     # st.write(wss)
     fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
     st.pyplot(fig)
 
-    k_means_three_dinner = KMeans(n_clusters=3, random_state=0)
-    k_means_three_dinner.fit_predict(dinner_scaled_data)
+    k_means_three_dinner = KMeans(init="k-means++", n_clusters=3, n_init=50, max_iter=500, random_state=42)
+    k_means_three_dinner.fit(dinner_scaled_data)
     print('WSS for K=3:', k_means_three_dinner.inertia_)
     labels_three = k_means_three_dinner.labels_
     st.write(silhouette_score(dinner_scaled_data, labels_three))
 
     length = len(DinnerFoodItemIDdata) + 2
     DinnerFoodItem_Test['KMCluster'] = dnrlbl
-    clust_profile=DinnerFoodItem_Test.iloc[:,[2,3,4,5,6,7,8,9,10,11,12]].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
+    clust_profile=DinnerFoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(DinnerFoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=DinnerFoodItem_Test.KMCluster.value_counts().sort_index()
     clust = pd.DataFrame(clust_profile)
     st.dataframe(clust)
@@ -469,40 +476,61 @@ def dinner_cluster_food(DinnerFoodItemIDdata, DinnerFoodItem_Test):
 def cluster_food(FoodItemIDData, FoodItem_Test):
     ###### K-MEANS FOR ALL FOOD
     
-    #Importing the standard scaler module and applying it on continuous variables
     MealDatacalorie=FoodItemIDData[0:,2:len(FoodItemIDData)] #nutrion data
     MealDatacalorie = MealDatacalorie[:, [0,1,2,7,8]]
-    print(MealDatacalorie)
+
+    # print(MealDatacalorie)
     S = StandardScaler()
     foods_scaled_data = S.fit_transform(MealDatacalorie)
     # print(foods_scaled_data)
 
-    # First, test Kmeans with clusters=3
-    k_means_meals = KMeans(n_clusters=4, random_state=0)
-    k_means_meals.fit_predict(foods_scaled_data)
+    k_means_meals = KMeans(init="k-means++", n_clusters=4, n_init=50, max_iter=500, random_state=42)
+    k_means_meals.fit(foods_scaled_data)
     labels=k_means_meals.labels_
-    # print(brklbl)
 
-    #To determine the optimum number of clusters, check the wss score for a given range of k
+    FoodItem_Test['KMCluster'] = labels
+
+    # df1 = FoodItem_Test[FoodItem_Test.KMCluster==0]
+    # df2 = FoodItem_Test[FoodItem_Test.KMCluster==1]
+    # df3 = FoodItem_Test[FoodItem_Test.KMCluster==2]
+    # df4 = FoodItem_Test[FoodItem_Test.KMCluster==3]
+    # fig = plt.figure(figsize = (10, 5))
+    # plt.scatter(df1.Carbohydrates,df1['Calories'],color='green')
+    # plt.scatter(df2.Carbohydrates,df2['Calories'],color='red')
+    # plt.scatter(df3.Carbohydrates,df3['Calories'],color='black')
+    # plt.scatter(df4.Carbohydrates,df4['Calories'],color='yellow')
+    # plt.scatter(k_means_meals.cluster_centers_[:,1],k_means_meals.cluster_centers_[:,0],color='purple',marker='*',label='centroid')
+    # plt.xlabel('Carbohydrates')
+    # plt.ylabel('Calories')
+    # plt.legend()
+    # st.pyplot(fig)
+
+    # from sklearn.decomposition import PCA
+    # fig = plt.figure(figsize = (10, 5))
+    # reduced_data = PCA(n_components=2).fit_transform(foods_scaled_data)
+    # results = pd.DataFrame(reduced_data, columns=['pca1','pca2'])
+    # sns.scatterplot(x=results["pca1"], y=results["pca2"], hue=k_means_meals)
+    # plt.title('K-means Clustering with 2 dimensions')
+    # st.pyplot(fig)
+
+    # Check Elbow plot
     wss =[] 
     for i in range(1,11):
-        KM_Meals = KMeans(n_clusters=i, random_state=0)
-        KM_Meals.fit_predict(foods_scaled_data)
+        KM_Meals = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
+        KM_Meals.fit(foods_scaled_data)
         wss.append(KM_Meals.inertia_)
-    # print(wss)
     fig = plt.figure(figsize = (10, 5))
     plt.plot(range(1,11), wss, marker = '*')
     st.pyplot(fig)
 
-    #Checking for n-clusters=3
-    k_means_three_meals = KMeans(n_clusters = 3, random_state=0)
-    k_means_three_meals.fit_predict(foods_scaled_data)
-    print('WSS for K=3:', k_means_three_meals.inertia_)
-    labels_three = k_means_three_meals.labels_
-    # print(labels_three)
-    #Calculating silhouette_score for k=3
-    st.write(silhouette_score(foods_scaled_data, labels_three))
-
+    # Check silhouette score
+    for i in range(2,10):
+        k_means_three_meals = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
+        k_means_three_meals.fit(foods_scaled_data)
+        print('WSS for K=:',k_means_three_meals.inertia_)
+        labels_three = k_means_three_meals.labels_
+        st.write(silhouette_score(foods_scaled_data, labels_three))
+    
     # Overview data in clusters
     length = len(FoodItemIDData) + 2
     FoodItem_Test['KMCluster'] = labels
@@ -510,6 +538,20 @@ def cluster_food(FoodItemIDData, FoodItem_Test):
     clust_profile['KMFrequency']=FoodItem_Test.KMCluster.value_counts().sort_index()
     clust = pd.DataFrame(clust_profile)
     st.dataframe(clust)
+
+    # c_data_path = "/Users/hoaibao/DATN/DATN_ML/image"
+    # L = FoodItem_Test['Food_items']
+    # n_row = 6
+    # n_col=6
+    # for i in range(4):
+    #     fig1 = plt.figure(figsize = (10, 5))
+    #     fig, axs = plt.subplots(n_row, n_col, figsize=(7, 7))
+    #     axs = axs.flatten()
+    #     for img, ax in zip(L[ k_means_meals.labels_ == i][:36], axs):
+    #         ax.imshow(mpimg.imread(os.path.join(c_data_path,img+'.jpeg')))
+    #     plt.tight_layout()
+    #     st.pyplot(fig)
+    #     st.write('----------------------------------------------------------------------')
 
     return labels
 
@@ -547,15 +589,14 @@ def Weight_Loss_Plan():
     feature_list = list(features.columns)
     features = np.array(features)
 
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.3, random_state = 42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
     print('Testing Labels Shape:', test_labels.shape)
 
     # #Create a Gaussian Classifier
-    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
-
+    clf=RandomForestClassifier(n_estimators=250, max_depth=4,random_state=42)
     # Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
 
@@ -566,7 +607,7 @@ def Weight_Loss_Plan():
 
     rows_list = []
     for idx, row in BreakfastNutrition.iterrows():
-        if row['KMCluster']==0:
+        if row['KMCluster']==1:
             # row = row.drop(['KMCluster'])
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
@@ -902,7 +943,7 @@ def Weight_Loss_Plan():
     feature_list = list(features.columns)
     features = np.array(features)
 
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.3, random_state = 42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
@@ -922,7 +963,7 @@ def Weight_Loss_Plan():
     rows_list = []
     # st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==2 :
+        if row['KMCluster']==0 or row['KMCluster']==1:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -951,7 +992,7 @@ def Weight_Loss_Plan():
     feature_list = list(features.columns)
     features = np.array(features)
 
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.3, random_state = 42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
@@ -971,7 +1012,7 @@ def Weight_Loss_Plan():
     rows_list = []
     st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS')
     for idx, row in DinnerNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==2:
+        if row['KMCluster']==1 or row['KMCluster']==2:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -1017,6 +1058,7 @@ def Weight_Loss_Plan():
                 <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
                 <style>
                     h2 {{
                         font-family: "Source Sans Pro", sans-serif;
@@ -1236,6 +1278,9 @@ def Weight_Loss_Plan():
                     h5 {{
                         text-align: center;
                     }}
+                    .image-parent {{
+                        max-width: 40px;
+                    }}
                 </style>
             </head>
         
@@ -1287,6 +1332,8 @@ def Weight_Loss_Plan():
                 </div>
                 <div class="start">Carbohydrate Daily Intake</div>
             </div>
+
+            
             
             <body>
                 <h3>BREAKFAST</h3>
@@ -1336,6 +1383,64 @@ def Weight_Loss_Plan():
                     </div>
                 </div>
             </div>
+
+
+            <div id="accordion">
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Breakfast Meal
+                        </button>
+                    </h5>
+                    </div>
+
+                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div class="panel-body" id="breakfast" style="padding:0px">
+                            <ul class="list-group" style="margin-bottom: 0px;">
+                               
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header" id="headingTwo">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Lunch Meal
+                        </button>
+                    </h5>
+                    </div>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                        <div class="panel-body" style="padding:0px">
+                            <ul class="list-group" style="margin-bottom: 0px;">
+                            
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header" id="headingThree">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Dinner Meal
+                        </button>
+                    </h5>
+                    </div>
+                    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                        <div class="panel-body" style="padding:0px">
+                            <ul class="list-group" style="margin-bottom: 0px;">
+                            
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="export">Export CSV</button>
+
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
             <script defer type="text/javascript">
@@ -1476,6 +1581,7 @@ def Weight_Loss_Plan():
                     
                     $(tr1).addClass("selected");
                     calc_new1();
+                    show_meal();
                 }});
 
 
@@ -1621,6 +1727,7 @@ def Weight_Loss_Plan():
                     if($(this).hasClass('selected')) {{
                         $(this).removeClass('selected');
                         calc_new1();
+                        show_meal();
                         return;
                     }}
 
@@ -1638,6 +1745,64 @@ def Weight_Loss_Plan():
                 }});
             </script>
 
+            <script defer type="text/javascript">
+           
+                function show_meal() {{
+                   
+                    var selected_rowss = document.getElementsByClassName("selected");
+                    $("#breakfast").empty();
+                    $.each(selected_rowss, function() {{
+                        var valuesss = new Array();
+                        var datass = $(this);
+                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
+                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
+                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
+                                        }});               
+                        $("#breakfast").append('<li class="list-group-item d-flex justify-content-between align-items-center">' + valuesss[0]['Food_items'] + ' Calories:' + valuesss[0]['Calories'] + ' Fats:' + valuesss[0]['Fats'] + '<div class="image-parent"><img src="https://s3.eu-central-1.amazonaws.com/bootstrapbaymisc/blog/24_days_bootstrap/don_quixote.jpg" class="img-fluid" alt="quixote"></div></li>');
+                   }})   
+                }}
+           
+            </script>
+
+            <script defer type="text/javascript">
+                $('#export').on('click', function() {{
+                    var titles = [];
+                    var data = [];
+
+                    $('#myTable thead th').each(function() {{
+                        titles.push($(this).text());
+                    }});
+
+                    var table = $('#myTable');
+                    table.find('.selected').each(function (i, el) {{
+                        
+                        var $tds = $(this).find('td:not(:has(img))');
+                        var row = [];
+                        $tds.each(function (i, el){{
+                            row.push($(this).text());
+                        }});
+                        data.push(row); 
+                    }});
+
+                    console.log(titles)
+                    console.log(data)
+                    
+                    csvFileData = data;
+                    var csv = 'Volume (g), Food_items, Calories, Fats, Proteins, Carbohydrates, Fibre, KMCluster\\n'; 
+
+                    csvFileData.forEach(function(row) {{
+                        csv += row.join(',');  
+                        csv += "\\n";  
+                    }});  
+
+                    var hiddenElement = document.createElement('a');  
+                    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);  
+                    hiddenElement.target = '_blank';  
+                    
+                    hiddenElement.download = 'Diet Plan Meal';  
+                    hiddenElement.click();  
+                }});
+            </script>
         </html>"""
                                 )
 
@@ -1645,7 +1810,7 @@ def Weight_Loss_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,720,1900) 
+    components.html(output_html,720,3000) 
 
 def Weight_Gain_Plan():
     print_user_input()
@@ -1680,14 +1845,14 @@ def Weight_Gain_Plan():
     feature_list = list(features.columns)
     features = np.array(features)
 
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.3, random_state = 42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
     print('Testing Labels Shape:', test_labels.shape)
 
     # #Create a Gaussian Classifier
-    clf=RandomForestClassifier(n_estimators = 100, random_state = 42)
+    clf=RandomForestClassifier(n_estimators=250, max_depth=4,random_state=42)
 
     # #Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
@@ -1700,7 +1865,7 @@ def Weight_Gain_Plan():
     rows_list = []
     # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
-        if row['KMCluster']==1 or row['KMCluster']==2:
+        if row['KMCluster']==0 or row['KMCluster']==2:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -1755,7 +1920,7 @@ def Weight_Gain_Plan():
     rows_list = []
     # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
-        if row['KMCluster']==1 or row['KMCluster']==2:
+        if row['KMCluster']==2 or row['KMCluster']==0:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -1806,7 +1971,7 @@ def Weight_Gain_Plan():
     rows_list = []
     st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN')
     for idx, row in DinnerNutrition.iterrows():
-        if row['KMCluster']==1:
+        if row['KMCluster']==0 or row['KMCluster']==1:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -2247,7 +2412,7 @@ def Maintenance_Plan():
     rows_list = []
     # print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==2:
+        if row['KMCluster']==0 or row['KMCluster']==1:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -2301,7 +2466,7 @@ def Maintenance_Plan():
     rows_list = []
     # print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==2:
+        if row['KMCluster']==0 or row['KMCluster']==1:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -2333,7 +2498,7 @@ def Maintenance_Plan():
     feature_list = list(features.columns)
     features = np.array(features)
 
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.3, random_state = 42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
@@ -2353,7 +2518,7 @@ def Maintenance_Plan():
     rows_list = []
     st.subheader('SUGGESTED FOOD ITEMS FOR MAINTENANCE')
     for idx, row in DinnerNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==2:
+        if row['KMCluster']==1 or row['KMCluster']==2:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre','KMCluster']]
             rows_list.append(row)
@@ -2752,34 +2917,132 @@ def Predict():
     FoodItemIDData=FoodItemIDData.to_numpy()
   
     foodlbs = cluster_food(FoodItemIDData, FoodNutrion)
-
-    labels = np.array(FoodNutrion['KMCluster'])
-    features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','Fibre','VitaminD','Sugars'], axis = 1)
+    print(FoodNutrion)
+    # labels = np.array(FoodNutrion['KMCluster'])
+    labels = FoodNutrion['KMCluster']
+    features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','VitaminD','Sugars'], axis = 1)
+    # features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg'], axis = 1)
     feature_list = list(features.columns)
-    features = np.array(features)
+    # features = np.array(features)
 
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state = 42)
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25 ,random_state=42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
     print('Testing Labels Shape:', test_labels.shape)
 
     # #Create a Gaussian Classifier
-    clf=RandomForestClassifier(n_estimators = 500, random_state = 42)
+    # clf=RandomForestClassifier( n_estimators=250, max_depth=4,random_state=42)
+    clf=RandomForestClassifier(n_estimators= 600, min_samples_split= 5, min_samples_leaf= 2, max_features= 'auto', max_depth= 70, bootstrap= False, random_state=42)
 
     # #Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
+    st.write("Model Score:",clf.score(test_features, test_labels))
 
     y_pred=clf.predict(test_features)
 
-    st.write("Model Accuracy:",metrics.accuracy_score(test_labels, y_pred))
+    st.write("Model Accuracy:", accuracy_score(test_labels, y_pred))
 
-    y_pred=clf.predict([[float(food_calories),float(food_fat), float(food_protein), float(food_carb)]])
+    from sklearn.model_selection import RandomizedSearchCV
+    # Number of trees in random forest
+    n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+    # Number of features to consider at every split
+    max_features = ['auto', 'sqrt']
+    # Maximum number of levels in tree
+    max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
+    max_depth.append(None)
+    # Minimum number of samples required to split a node
+    min_samples_split = [2, 5, 10]
+    # Minimum number of samples required at each leaf node
+    min_samples_leaf = [1, 2, 4]
+    # Method of selecting samples for training each tree
+    bootstrap = [True, False]
+    # Create the random grid
+    random_grid = {'n_estimators': n_estimators,
+                'max_features': max_features,
+                'max_depth': max_depth,
+                'min_samples_split': min_samples_split,
+                'min_samples_leaf': min_samples_leaf,
+                'bootstrap': bootstrap}
 
-    if y_pred==0 or y_pred==2:
-        st.info('HEALTHY FOOD: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
-    if y_pred==1 or y_pred==3:
-        st.info('NOT HEALTHY FOOD: SUITABLE FOR **WEIGHT GAIN**')
+    # Use the random grid to search for best hyperparameters
+    # First create the base model to tune
+    rf = RandomForestClassifier()
+    # Random search of parameters, using 3 fold cross validation, 
+    # search across 100 different combinations, and use all available cores
+    rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, scoring='neg_mean_absolute_error', cv = 3, verbose=2, random_state=42, n_jobs = -1, return_train_score=True)
+    # Fit the random search model
+    rf_random.fit(train_features, train_labels)
+
+    print(rf_random.best_params_)
+
+    def evaluate(model, test_features, test_labels):
+        y_pred=model.predict(test_features)
+        st.write("Model Accuracy:", accuracy_score(test_labels, y_pred))
+        
+        return accuracy_score(test_labels, y_pred)
+
+    base_model = RandomForestClassifier(n_estimators = 10, random_state = 42)
+    base_model.fit(train_features, train_labels)
+    base_accuracy = evaluate(base_model, test_features, test_labels)
+
+    best_random = rf_random.best_estimator_
+    random_accuracy = evaluate(best_random, test_features, test_labels)
+
+    print('Improvement of {:0.2f}%.'.format( 100 * (random_accuracy - base_accuracy) / base_accuracy))
+
+    from sklearn.model_selection import GridSearchCV
+    # Create the parameter grid based on the results of random search 
+    param_grid = {
+        'bootstrap': [True],
+        'max_depth': [60, 70, 80, 90, 100],
+        'max_features': [2, 3],
+        'min_samples_leaf': [2,3],
+        'min_samples_split': [4, 5, 6],
+        'n_estimators': [400, 500, 600, 800]
+    }
+    # Create a based model
+    rf = RandomForestClassifier()
+    # Instantiate the grid search model
+    grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                            cv = 3, n_jobs = -1, verbose = 2, return_train_score=True)
+
+    # Fit the grid search to the data
+    grid_search.fit(train_features, train_labels)
+    print(grid_search.best_params_)
+
+    best_grid = grid_search.best_estimator_
+    grid_accuracy = evaluate(best_grid, test_features, test_labels)
+
+    print('Improvement of {:0.2f}%.'.format( 100 * (grid_accuracy - base_accuracy) / base_accuracy))
+
+    # print (f'Train Accuracy - : {rf_Grid.score(train_features, train_labels):.3f}')
+    # print (f'Test Accuracy - : {rf_Grid.score(test_features,test_labels):.3f}')
+
+    # y_pred=clf.predict([[float(food_calories),float(food_fat), float(food_protein), float(food_carb), float(food_fibre)]])
+
+    # # Import the model we are using
+    # from sklearn.ensemble import RandomForestRegressor
+    # # Limit depth of tree to 3 levels
+    # rf_small = RandomForestRegressor(n_estimators=10, max_depth=4)
+    # rf_small.fit(train_features, train_labels)
+    # # Extract the small tree
+    # tree_small = rf_small.estimators_[5]
+    # # Save the tree as a png image
+    # export_graphviz(tree_small, out_file = 'small_tree.dot', feature_names = feature_list, rounded = True, precision = 1)
+    # (graph, ) = pydot.graph_from_dot_file('small_tree.dot')
+    # graph.write_png('small_tree.png')
+
+    # if y_pred==2:
+    #     st.info('LOW CALORIES: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+    # if y_pred==3:
+    #     st.info('LOW CALORIES - HIGH PROTEIN: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+    # if y_pred==0:
+    #     st.info('HIGH CALORIES - HIGH CARBOHYDRATE: SUITABLE FOR **WEIGHT GAIN**')
+    # if y_pred==1:
+    #     st.info('HIGH CALORIES - HIGH CARBOHYDRATE, FAT: SUITABLE FOR **WEIGHT GAIN**')
+
+
     # if y_pred==2:
     #     st.info('PREDICTION RESULT: MOST SUITABLE FOR **MAINTENANCE**')
 
@@ -2912,5 +3175,8 @@ with user_input:
 
         st.sidebar.subheader("Enter the amount of carbohydrate in 100g of food!")
         food_carb = st.sidebar.text_input("Enter the grams of carbohydrate!", '23')
+
+        st.sidebar.subheader("Enter the amount of fibre in 100g of food!")
+        food_fibre = st.sidebar.text_input("Enter the grams of fibre!", '2.6')
 
         st.sidebar.button('Do it now!', on_click=Predict)
