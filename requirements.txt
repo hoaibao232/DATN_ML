@@ -16,7 +16,6 @@ scipy==1.7.2
 setuptools-scm==6.3.2
 six==1.16.0
 threadpoolctl==3.0.0
-tk==0.1.0
 tomli==1.2.2
 streamlit
 jinja2

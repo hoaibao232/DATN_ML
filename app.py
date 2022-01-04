@@ -18,8 +18,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve, f1_score
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import seaborn as sns
-import os
 
 # read dataset
 data=pd.read_csv('food.csv')
