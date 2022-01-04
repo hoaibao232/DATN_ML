@@ -12,8 +12,6 @@ from sklearn import metrics
 from sklearn.tree import export_graphviz
 import pydot
 import streamlit as st
-from bokeh.plotting import figure
-from streamlit_bokeh_events import streamlit_bokeh_events
 import streamlit.components.v1 as components
 import jinja2
 from sklearn.ensemble import RandomForestRegressor
