@@ -15,9 +15,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 import jinja2
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve, f1_score,classification_report
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import LeaveOneOut
+from sklearn.model_selection import GridSearchCV
 
 # read dataset
 data=pd.read_csv('food.csv')
@@ -282,16 +285,15 @@ def calc_TDEE():
         st.success(str_fat)
         st.success(str_carb)
 
-        st.balloons()
-
         fig1, ax1 = plt.subplots(figsize=(8, 3))
         patches, texts, pcts = ax1.pie(sizes, explode=explode, colors = ['#555658','#41B6EF','#CDCED0'] ,labels=labels, autopct='%1.1f%%',
                 shadow=True, startangle=90)
         plt.setp(pcts, color='white')
         ax1.axis('equal') 
 
-        
         st.pyplot(fig1)
+        
+        st.balloons()
     # st.info("**Your Total Daily Energy Expenditure is: ", TDEE , 'calories**')
     # st.info("**Our recommend Total Daily Intake Calories is: ", total_calo , 'calories**')
     # st.info("**Total Protein is: ", total_protein , 'g**')
@@ -4122,109 +4124,144 @@ def Predict():
     FoodItemIDData=FoodItemIDData.to_numpy()
   
     foodlbs = cluster_food(FoodItemIDData, FoodNutrion)
-    print(FoodNutrion)
-    # labels = np.array(FoodNutrion['KMCluster'])
+    # print(FoodNutrion)
+    labels = np.array(FoodNutrion['KMCluster'])
     labels = FoodNutrion['KMCluster']
     features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','VitaminD','Sugars'], axis = 1)
     # features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg'], axis = 1)
     feature_list = list(features.columns)
-    # features = np.array(features)
-
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25 ,random_state=42)
+    features = np.array(features)
+    
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.25, random_state=42)
     print('Training Features Shape:', train_features.shape)
     print('Training Labels Shape:', train_labels.shape)
     print('Testing Features Shape:', test_features.shape)
     print('Testing Labels Shape:', test_labels.shape)
 
+    rf = RandomForestClassifier(random_state = 42)
+
+    # Look at parameters used by our current forest
+    st.write('Parameters currently in use:\n')
+    st.write(rf.get_params())
+
+    # Normalize the data
+    # sc = StandardScaler()
+    # normed_train_data = sc.fit_transform(train_features)
+    # normed_test_data = sc.fit_transform(test_features)
+
+    # sc = StandardScaler()
+    # train_features = sc.fit_transform(train_features)
+    # test_features = sc.transform(test_features)
+    
+    # st.write(normed_train_data)
+    # st.write(train_labels)
+    # st.write(normed_test_data)
+    st.write(train_features)
+    st.write(test_features)
+
     # #Create a Gaussian Classifier
-    # clf=RandomForestClassifier( n_estimators=250, max_depth=4,random_state=42)
-    clf=RandomForestClassifier(n_estimators= 600, min_samples_split= 5, min_samples_leaf= 2, max_features= 'auto', max_depth= 70, bootstrap= False, random_state=42)
+    # clf=RandomForestClassifier(n_estimators=250, max_depth=4,random_state=42)
+    clf=RandomForestClassifier(n_estimators=100, random_state=42)
 
     # #Train the model using the training sets y_pred=clf.predict(X_test)
     clf.fit(train_features, train_labels)
-    st.write("Model Score:",clf.score(test_features, test_labels))
-
+   
     y_pred=clf.predict(test_features)
 
-    st.write("Model Accuracy:", accuracy_score(test_labels, y_pred))
+    st.write("Train Score:",clf.score(train_features, train_labels))
 
-    from sklearn.model_selection import RandomizedSearchCV
-    # Number of trees in random forest
-    n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
-    # Number of features to consider at every split
-    max_features = ['auto', 'sqrt']
-    # Maximum number of levels in tree
-    max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
-    max_depth.append(None)
-    # Minimum number of samples required to split a node
-    min_samples_split = [2, 5, 10]
-    # Minimum number of samples required at each leaf node
-    min_samples_leaf = [1, 2, 4]
-    # Method of selecting samples for training each tree
-    bootstrap = [True, False]
-    # Create the random grid
-    random_grid = {'n_estimators': n_estimators,
-                'max_features': max_features,
-                'max_depth': max_depth,
-                'min_samples_split': min_samples_split,
-                'min_samples_leaf': min_samples_leaf,
-                'bootstrap': bootstrap}
+    st.write("Test Score:", clf.score(test_features, test_labels))
 
-    # Use the random grid to search for best hyperparameters
-    # First create the base model to tune
-    rf = RandomForestClassifier()
-    # Random search of parameters, using 3 fold cross validation, 
-    # search across 100 different combinations, and use all available cores
-    rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, scoring='neg_mean_absolute_error', cv = 3, verbose=2, random_state=42, n_jobs = -1, return_train_score=True)
-    # Fit the random search model
-    rf_random.fit(train_features, train_labels)
+    print(confusion_matrix(test_labels,y_pred))
+    print(classification_report(test_labels,y_pred))
+    print(accuracy_score(test_labels,y_pred))
 
-    print(rf_random.best_params_)
+    # abc = pd.DataFrame(clf.feature_importances_, index=train_features.columns).sort_values(by=0, ascending=False)
+    # st.dataframe(abc)
 
-    def evaluate(model, test_features, test_labels):
-        y_pred=model.predict(test_features)
-        st.write("Model Accuracy:", accuracy_score(test_labels, y_pred))
+
+
+
+    # from sklearn.model_selection import RandomizedSearchCV
+    # # Number of trees in random forest
+    # n_estimators = [int(x) for x in np.linspace(start = 100, stop = 2000, num = 10)]
+    # # Number of features to consider at every split
+    # max_features = ['auto', 'sqrt']
+    # # Maximum number of levels in tree
+    # max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
+    # # Minimum number of samples required to split a node
+    # min_samples_split = [2, 5, 10]
+    # # Minimum number of samples required at each leaf node
+    # min_samples_leaf = [1, 2, 4]
+    # # Method of selecting samples for training each tree
+    # bootstrap = [True, False]
+    # # Create the random grid
+    # random_grid = {'n_estimators': n_estimators,
+    #             'max_features': max_features,
+    #             'max_depth': max_depth,
+    #             'min_samples_split': min_samples_split,
+    #             'min_samples_leaf': min_samples_leaf,
+    #             'bootstrap': bootstrap
+    #             }
+
+    # # Use the random grid to search for best hyperparameters
+    # # First create the base model to tune
+    # rf = RandomForestClassifier()
+    # # Random search of parameters, using 3 fold cross validation, 
+    # # search across 100 different combinations, and use all available cores
+    # rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)    # Fit the random search model
+    # rf_random.fit(train_features, train_labels)
+
+    # st.write(rf_random.best_params_)
+
+    # def evaluate(model, test_features, test_labels):
+    #     y_pred=model.predict(test_features)
+    #     st.write("Model Accuracy:", model.score(test_features, test_labels))
         
-        return accuracy_score(test_labels, y_pred)
+    #     return model.score(test_features, test_labels)
 
-    base_model = RandomForestClassifier(n_estimators = 10, random_state = 42)
-    base_model.fit(train_features, train_labels)
-    base_accuracy = evaluate(base_model, test_features, test_labels)
+    # base_model = RandomForestClassifier(n_estimators=100, random_state=42)
+    # base_model.fit(train_features, train_labels)
+    # base_accuracy = evaluate(base_model, test_features, test_labels)
 
-    best_random = rf_random.best_estimator_
-    random_accuracy = evaluate(best_random, test_features, test_labels)
+    # best_random = rf_random.best_estimator_
+    # random_accuracy = evaluate(best_random, test_features, test_labels)
 
-    print('Improvement of {:0.2f}%.'.format( 100 * (random_accuracy - base_accuracy) / base_accuracy))
+    # st.write('Improvement random grid of {:0.2f}%.'.format( 100 * (random_accuracy - base_accuracy) / base_accuracy))
 
-    from sklearn.model_selection import GridSearchCV
-    # Create the parameter grid based on the results of random search 
-    param_grid = {
-        'bootstrap': [True],
-        'max_depth': [60, 70, 80, 90, 100],
-        'max_features': [2, 3],
-        'min_samples_leaf': [2,3],
-        'min_samples_split': [4, 5, 6],
-        'n_estimators': [400, 500, 600, 800]
-    }
-    # Create a based model
-    rf = RandomForestClassifier()
-    # Instantiate the grid search model
-    grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
-                            cv = 3, n_jobs = -1, verbose = 2, return_train_score=True)
 
-    # Fit the grid search to the data
-    grid_search.fit(train_features, train_labels)
-    print(grid_search.best_params_)
+    # from sklearn.model_selection import GridSearchCV
+    # # Create the parameter grid based on the results of random search 
+    # param_grid = {
+    #     'max_depth': [90,110,130],
+    #     'max_features': ['auto'],
+    #     'min_samples_leaf': [2,3,4],
+    #     'min_samples_split': [4,5,6],
+    #     'n_estimators': [80, 100, 120],
+    #     'bootstrap': [True, False]
+    # }
+    # # Create a based model
+    # rf1 = RandomForestClassifier()
+    # # Instantiate the grid search model
+    # grid_search = GridSearchCV(estimator = rf1, param_grid = param_grid, 
+    #                         cv = 3, n_jobs = -1, verbose = 2)
 
-    best_grid = grid_search.best_estimator_
-    grid_accuracy = evaluate(best_grid, test_features, test_labels)
+    # # Fit the grid search to the data
+    # grid_search.fit(train_features, train_labels)
+    # st.write(grid_search.best_params_)
 
-    print('Improvement of {:0.2f}%.'.format( 100 * (grid_accuracy - base_accuracy) / base_accuracy))
+    # best_grid = grid_search.best_estimator_
+    # grid_accuracy = evaluate(best_grid, test_features, test_labels)
+
+    # st.write('Improvement Best grid of {:0.2f}%.'.format( 100 * (grid_accuracy - base_accuracy) / base_accuracy))
 
     # print (f'Train Accuracy - : {rf_Grid.score(train_features, train_labels):.3f}')
     # print (f'Test Accuracy - : {rf_Grid.score(test_features,test_labels):.3f}')
 
-    # y_pred=clf.predict([[float(food_calories),float(food_fat), float(food_protein), float(food_carb), float(food_fibre)]])
+
+
+
+    y_pred=clf.predict([[float(food_calories),float(food_fat), float(food_protein), float(food_carb), float(food_fibre)]])
 
     # # Import the model we are using
     # from sklearn.ensemble import RandomForestRegressor
@@ -4238,29 +4275,26 @@ def Predict():
     # (graph, ) = pydot.graph_from_dot_file('small_tree.dot')
     # graph.write_png('small_tree.png')
 
-    # if y_pred==2:
-    #     st.info('LOW CALORIES: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
-    # if y_pred==3:
-    #     st.info('LOW CALORIES - HIGH PROTEIN: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
-    # if y_pred==0:
-    #     st.info('HIGH CALORIES - HIGH CARBOHYDRATE: SUITABLE FOR **WEIGHT GAIN**')
-    # if y_pred==1:
-    #     st.info('HIGH CALORIES - HIGH CARBOHYDRATE, FAT: SUITABLE FOR **WEIGHT GAIN**')
+    if y_pred==2:
+        st.info('LOW CALORIES: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+    if y_pred==3:
+        st.info('LOW CALORIES - HIGH PROTEIN: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+    if y_pred==0:
+        st.info('HIGH CALORIES - HIGH CARBOHYDRATE: SUITABLE FOR **WEIGHT GAIN**')
+    if y_pred==1:
+        st.info('HIGH CALORIES - HIGH CARBOHYDRATE, FAT: SUITABLE FOR **WEIGHT GAIN**')
 
-
-    # if y_pred==2:
-    #     st.info('PREDICTION RESULT: MOST SUITABLE FOR **MAINTENANCE**')
 
     st.balloons()
 
-    # Get numerical feature importances
-    importances = list(clf.feature_importances_)
-    # List of tuples with variable and importance
-    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
-    # Sort the feature importances by most important first
-    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-    # Print out the feature and importances 
-    [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
+    # # Get numerical feature importances
+    # importances = list(clf.feature_importances_)
+    # # List of tuples with variable and importance
+    # feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+    # # Sort the feature importances by most important first
+    # feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+    # # Print out the feature and importances 
+    # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
 
 
 st.set_page_config(layout="centered")
