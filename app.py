@@ -715,7 +715,7 @@ def Weight_Loss_Plan():
                         text-overflow: ellipsis;
                         white-space: nowrap;
                         display: table-cell;
-
+                        overflow-x: scroll;
                         font-family: "Source Sans Pro", sans-serif;
                         font-size: 14px;
                         color: rgb(49, 51, 63);
@@ -750,16 +750,16 @@ def Weight_Loss_Plan():
                     vertical-align: middle;
                     }}
 
-                    # .dataTable-sorter::before,
-                    # .dataTable-sorter::after {{
-                    #     display: none;
+                    .dataTable-sorter::before,
+                    .dataTable-sorter::after {{
+                        display: none;
                         
-                    # }}
+                    }}
 
-                    # .dataTable-sorter {{
-                    #     pointer-events: none;
-                    #     cursor: default;
-                    # }}
+                    .dataTable-sorter {{
+                        pointer-events: none;
+                        cursor: default;
+                    }}
 
                     .table tbody + tbody {{
                     border-top: 2px solid #eceeef;
@@ -771,18 +771,14 @@ def Weight_Loss_Plan():
 
                         .table_wrapper{{
                         display: block;
-                        overflow-x: auto;
                         white-space: nowrap;
                     }}
                     .table {{
                         font-family: arial, sans-serif;
-                        border-collapse: collapse;
                         width: 100%;
-                        overflow-x: auto;
                         border: 1px solid black;
                         table-layout: fixed;
-                        overflow: scroll;
-                        overflow-y:scroll;
+                        overflow-x: hidden;
                         height: 400px;
                         display:block;
                     }}
@@ -877,6 +873,15 @@ def Weight_Loss_Plan():
                         top: 50%;
                         transform: translateY(-50%);
                     }}
+
+                    .dataTable-input {{
+                        display: none;
+                    }}
+
+                    table.dataTable{{
+                        box-sizing: border-box;
+                        overflow: scroll;
+                        }}
                 </style>
             </head>
         
@@ -1152,8 +1157,6 @@ def Weight_Loss_Plan():
 
                     var a;
                     var tr;
-                    console.log('333333')
-                    console.log(tableIDs)
                     if (tableIDs == 'myTable') {{
                         a = $('#myTable tr td:contains("' + food_name + '")').filter(function(){{
                             console.log($.trim($(this).text()));
@@ -1198,14 +1201,18 @@ def Weight_Loss_Plan():
                     show_meal();
                 }}
             </script>
+            <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
 
             <script defer type="text/javascript">
                 function calc_new1() {{
                     
                     var valuesss = new Array();
+                    var rows_selection = new Array();
                     var selected_rowss = document.getElementsByClassName("selected");
+                    $('table.table-striped').DataTable().rows('.selected').invalidate();
+                    var selection_rows = $('table.table-striped').DataTable().rows('.selected').data()
 
-                    var numberOfChecked = selected_rowss.length;
+                    var numberOfChecked = $('table.table-striped').DataTable().rows('.selected').count();
                     if (numberOfChecked == 0) {{
                             $("#calories-intake").css("width", 0 + "%").text("Intake: " +0);
                             $("#calories-left").css("width", 100 + "%").text("Calorties left: " + ({total_calo}).toFixed(1));
@@ -1220,14 +1227,16 @@ def Weight_Loss_Plan():
                             $("#carb-left").css("width", 100 + "%").text("Carbohydrate left: " + ({total_carb}).toFixed(1));
                         }}
 
-                    $.each(selected_rowss, function() {{
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
-                    
-                                    
+            
+                    $.each(selection_rows, function(){{
+                        console.log(this)
+                        var Row=this;
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});   
+
+                                      
                         var total_calories = 0;
                         var total_fats = 0;
                         var total_proteins = 0;
@@ -1424,13 +1433,15 @@ def Weight_Loss_Plan():
                     var table = document.getElementById("myTable");
                     var selected_rowss = table.getElementsByClassName("selected");
                     $("#breakfast").empty();
-                    $.each(selected_rowss, function(element, index) {{
+
+                    $('#myTable').DataTable().rows('.selected').every(function(element, index){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Image':$(datass).find('img').attr('src'), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});     
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});         
                        
                         $("#breakfast").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
@@ -1440,13 +1451,14 @@ def Weight_Loss_Plan():
                     var table1 = document.getElementById("myTable1");
                     var selected_rowss1 = table1.getElementsByClassName("selected");
                     $("#lunch").empty();
-                    $.each(selected_rowss1, function() {{
+                    $('#myTable1').DataTable().rows('.selected').every(function(){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});                
                     $("#lunch").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
                         
@@ -1455,20 +1467,20 @@ def Weight_Loss_Plan():
                     var table2 = document.getElementById("myTable2");
                     var selected_rowss2 = table2.getElementsByClassName("selected");
                     $("#dinner").empty();
-                    $.each(selected_rowss2, function() {{
+                    $('#myTable2').DataTable().rows('.selected').every(function(){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});                   
                       
                         
                         $("#dinner").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
                         
                         }})   
-        
                 }}
             </script>
 
@@ -1488,35 +1500,41 @@ def Weight_Loss_Plan():
                     var table1 = $('#myTable1');
                     var table2 = $('#myTable2');
 
-                    table.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Breakfast');
                         data.push(row); 
                     }});
 
-                    table1.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table1.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Lunch');
                         data.push(row); 
                     }});
 
-                    table2.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table2.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Dinner');
                         data.push(row); 
                     }});
@@ -1539,11 +1557,21 @@ def Weight_Loss_Plan():
                     hiddenElement.click();  
                 }});
             </script>
+
+            <script defer type="text/javascript">
+                $(document).ready(function() {{
+                $('table.table-striped').dataTable( {{
+                    stateSave: true,
+                    "bPaginate": false,
+                    "bInfo": false,
+                }});
+            }});
+            </script>
         </html>"""
                                 )
 
     output_html = template.render(lunch_dataframe=lunch_df.to_html(classes='table table-striped', header="true", table_id="myTable1", escape=False ,formatters=dict(Image=path_to_image_html)),
-                breakfast_dataframe=breakfast_df.to_html(classes='table', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
+                breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
     components.html(output_html,720,2500) 
@@ -1697,7 +1725,7 @@ def Weight_Gain_Plan():
                         text-overflow: ellipsis;
                         white-space: nowrap;
                         display: table-cell;
-
+                        overflow-x: scroll;
                         font-family: "Source Sans Pro", sans-serif;
                         font-size: 14px;
                         color: rgb(49, 51, 63);
@@ -1732,16 +1760,16 @@ def Weight_Gain_Plan():
                     vertical-align: middle;
                     }}
 
-                    # .dataTable-sorter::before,
-                    # .dataTable-sorter::after {{
-                    #     display: none;
+                    .dataTable-sorter::before,
+                    .dataTable-sorter::after {{
+                        display: none;
                         
-                    # }}
+                    }}
 
-                    # .dataTable-sorter {{
-                    #     pointer-events: none;
-                    #     cursor: default;
-                    # }}
+                    .dataTable-sorter {{
+                        pointer-events: none;
+                        cursor: default;
+                    }}
 
                     .table tbody + tbody {{
                     border-top: 2px solid #eceeef;
@@ -1753,18 +1781,14 @@ def Weight_Gain_Plan():
 
                         .table_wrapper{{
                         display: block;
-                        overflow-x: auto;
                         white-space: nowrap;
                     }}
                     .table {{
                         font-family: arial, sans-serif;
-                        border-collapse: collapse;
                         width: 100%;
-                        overflow-x: auto;
                         border: 1px solid black;
                         table-layout: fixed;
-                        overflow: scroll;
-                        overflow-y:scroll;
+                        overflow-x: hidden;
                         height: 400px;
                         display:block;
                     }}
@@ -1818,7 +1842,7 @@ def Weight_Gain_Plan():
                     td {{border: 1px #DDD solid; padding: 5px; cursor: pointer;}}
 
                     .selected {{
-                        background-color: brown !important; 
+                        background-color: #dc3545 !important; 
                         color: #FFF !important;
                     }}
 
@@ -1859,6 +1883,15 @@ def Weight_Gain_Plan():
                         top: 50%;
                         transform: translateY(-50%);
                     }}
+
+                    .dataTable-input {{
+                        display: none;
+                    }}
+
+                    table.dataTable{{
+                        box-sizing: border-box;
+                        overflow: scroll;
+                        }}
                 </style>
             </head>
         
@@ -2180,14 +2213,19 @@ def Weight_Gain_Plan():
                     show_meal();
                 }}
             </script>
+            <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+
 
             <script defer type="text/javascript">
                 function calc_new1() {{
                     
                     var valuesss = new Array();
+                    var rows_selection = new Array();
                     var selected_rowss = document.getElementsByClassName("selected");
+                    $('table.table-striped').DataTable().rows('.selected').invalidate();
+                    var selection_rows = $('table.table-striped').DataTable().rows('.selected').data()
 
-                    var numberOfChecked = selected_rowss.length;
+                    var numberOfChecked = $('table.table-striped').DataTable().rows('.selected').count();
                     if (numberOfChecked == 0) {{
                             $("#calories-intake").css("width", 0 + "%").text("Intake: " +0);
                             $("#calories-left").css("width", 100 + "%").text("Calorties left: " + ({total_calo}).toFixed(1));
@@ -2202,14 +2240,16 @@ def Weight_Gain_Plan():
                             $("#carb-left").css("width", 100 + "%").text("Carbohydrate left: " + ({total_carb}).toFixed(1));
                         }}
 
-                    $.each(selected_rowss, function() {{
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
-                    
-                                    
+            
+                    $.each(selection_rows, function(){{
+                        console.log(this)
+                        var Row=this;
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});   
+
+                                      
                         var total_calories = 0;
                         var total_fats = 0;
                         var total_proteins = 0;
@@ -2406,13 +2446,15 @@ def Weight_Gain_Plan():
                     var table = document.getElementById("myTable");
                     var selected_rowss = table.getElementsByClassName("selected");
                     $("#breakfast").empty();
-                    $.each(selected_rowss, function(element, index) {{
+
+                    $('#myTable').DataTable().rows('.selected').every(function(element, index){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Image':$(datass).find('img').attr('src'), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});     
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});         
                        
                         $("#breakfast").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
@@ -2422,13 +2464,14 @@ def Weight_Gain_Plan():
                     var table1 = document.getElementById("myTable1");
                     var selected_rowss1 = table1.getElementsByClassName("selected");
                     $("#lunch").empty();
-                    $.each(selected_rowss1, function() {{
+                    $('#myTable1').DataTable().rows('.selected').every(function(){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});                
                     $("#lunch").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
                         
@@ -2437,16 +2480,20 @@ def Weight_Gain_Plan():
                     var table2 = document.getElementById("myTable2");
                     var selected_rowss2 = table2.getElementsByClassName("selected");
                     $("#dinner").empty();
-                    $.each(selected_rowss2, function() {{
+                    $('#myTable2').DataTable().rows('.selected').every(function(){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});                   
+                                       
                         $("#dinner").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
-                        'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')      
+                        'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
+                        
                         }})   
+        
                 }}
             </script>
 
@@ -2466,35 +2513,41 @@ def Weight_Gain_Plan():
                     var table1 = $('#myTable1');
                     var table2 = $('#myTable2');
 
-                    table.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Breakfast');
                         data.push(row); 
                     }});
 
-                    table1.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table1.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Lunch');
                         data.push(row); 
                     }});
 
-                    table2.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table2.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Dinner');
                         data.push(row); 
                     }});
@@ -2516,6 +2569,26 @@ def Weight_Gain_Plan():
                     hiddenElement.download = 'Diet Plan Meal';  
                     hiddenElement.click();  
                 }});
+            </script>
+
+            <script defer type="text/javascript">
+                $(document).ready(function() {{
+                $('#myTable').dataTable( {{
+                    stateSave: true,
+                    "bPaginate": false,
+                    "bInfo": false,
+                }});
+                $('#myTable1').dataTable( {{
+                    stateSave: true,
+                    "bPaginate": false,
+                    "bInfo": false,
+                }});
+                $('#myTable2').dataTable( {{
+                    stateSave: true,
+                    "bPaginate": false,
+                    "bInfo": false,
+                }});
+            }});
             </script>
         </html>"""
                                 )
@@ -2678,7 +2751,7 @@ def Maintenance_Plan():
                         text-overflow: ellipsis;
                         white-space: nowrap;
                         display: table-cell;
-
+                        overflow-x: scroll;
                         font-family: "Source Sans Pro", sans-serif;
                         font-size: 14px;
                         color: rgb(49, 51, 63);
@@ -2713,16 +2786,16 @@ def Maintenance_Plan():
                     vertical-align: middle;
                     }}
 
-                    # .dataTable-sorter::before,
-                    # .dataTable-sorter::after {{
-                    #     display: none;
+                    .dataTable-sorter::before,
+                    .dataTable-sorter::after {{
+                        display: none;
                         
-                    # }}
+                    }}
 
-                    # .dataTable-sorter {{
-                    #     pointer-events: none;
-                    #     cursor: default;
-                    # }}
+                    .dataTable-sorter {{
+                        pointer-events: none;
+                        cursor: default;
+                    }}
 
                     .table tbody + tbody {{
                     border-top: 2px solid #eceeef;
@@ -2739,13 +2812,10 @@ def Maintenance_Plan():
                     }}
                     .table {{
                         font-family: arial, sans-serif;
-                        border-collapse: collapse;
                         width: 100%;
-                        overflow-x: auto;
                         border: 1px solid black;
                         table-layout: fixed;
-                        overflow: scroll;
-                        overflow-y:scroll;
+                        overflow-x: hidden;
                         height: 400px;
                         display:block;
                     }}
@@ -2839,6 +2909,15 @@ def Maintenance_Plan():
                         position: relative;
                         top: 50%;
                         transform: translateY(-50%);
+                    }}
+
+                    .dataTable-input {{
+                        display: none;
+                    }}
+
+                    table.dataTable{{
+                        box-sizing: border-box;
+                        overflow: scroll;
                     }}
                 </style>
             </head>
@@ -3159,14 +3238,18 @@ def Maintenance_Plan():
                     show_meal();
                 }}
             </script>
+            <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
 
             <script defer type="text/javascript">
                 function calc_new1() {{
                     
                     var valuesss = new Array();
+                    var rows_selection = new Array();
                     var selected_rowss = document.getElementsByClassName("selected");
+                    $('table.table-striped').DataTable().rows('.selected').invalidate();
+                    var selection_rows = $('table.table-striped').DataTable().rows('.selected').data()
 
-                    var numberOfChecked = selected_rowss.length;
+                    var numberOfChecked = $('table.table-striped').DataTable().rows('.selected').count();
                     if (numberOfChecked == 0) {{
                             $("#calories-intake").css("width", 0 + "%").text("Intake: " +0);
                             $("#calories-left").css("width", 100 + "%").text("Calorties left: " + ({total_calo}).toFixed(1));
@@ -3181,14 +3264,16 @@ def Maintenance_Plan():
                             $("#carb-left").css("width", 100 + "%").text("Carbohydrate left: " + ({total_carb}).toFixed(1));
                         }}
 
-                    $.each(selected_rowss, function() {{
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
-                    
-                                    
+            
+                    $.each(selection_rows, function(){{
+                        console.log(this)
+                        var Row=this;
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});   
+
+                                      
                         var total_calories = 0;
                         var total_fats = 0;
                         var total_proteins = 0;
@@ -3385,13 +3470,15 @@ def Maintenance_Plan():
                     var table = document.getElementById("myTable");
                     var selected_rowss = table.getElementsByClassName("selected");
                     $("#breakfast").empty();
-                    $.each(selected_rowss, function(element, index) {{
+
+                    $('#myTable').DataTable().rows('.selected').every(function(element, index){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Image':$(datass).find('img').attr('src'), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});     
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});         
                        
                         $("#breakfast").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
@@ -3401,13 +3488,14 @@ def Maintenance_Plan():
                     var table1 = document.getElementById("myTable1");
                     var selected_rowss1 = table1.getElementsByClassName("selected");
                     $("#lunch").empty();
-                    $.each(selected_rowss1, function() {{
+                    $('#myTable1').DataTable().rows('.selected').every(function(){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});                
                     $("#lunch").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
                         
@@ -3416,17 +3504,19 @@ def Maintenance_Plan():
                     var table2 = document.getElementById("myTable2");
                     var selected_rowss2 = table2.getElementsByClassName("selected");
                     $("#dinner").empty();
-                    $.each(selected_rowss2, function() {{
+                    $('#myTable2').DataTable().rows('.selected').every(function(){{
                         var valuesss = new Array();
-                        var datass = $(this);
-                        valuesss.push({{ 'Volumn':$(datass).find('td:eq(0)').text(), 'Food_items':$(datass).find('td:eq(2)').text() , 'Calories':$(datass).find('td:eq(3)').text(),
-                                        'Fats':$(datass).find('td:eq(4)').text(), 'Proteins':$(datass).find('td:eq(5)').text(),
-                                        'Carbohydrates':$(datass).find('td:eq(6)').text(), 'Fibre':$(datass).find('td:eq(7)').text(),
-                                        }});               
+                        this.invalidate();
+                        var Row=this.data();
+                        valuesss.push({{ 'Volumn':Row[1], 'Food_items':Row[3] , 'Calories':Row[4],
+                                        'Fats':Row[5], 'Proteins':Row[6],
+                                        'Carbohydrates':Row[7], 'Fibre':Row[8],
+                                        }});                   
                       
                         
                         $("#dinner").append('<div class="border-bottom"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 ml-3 mt-2">' + valuesss[0]['Food_items'] + '</h6><small class="mr-2 mt-2">Volumn: ' + valuesss[0]['Volumn'] + 'g</small></div><p class="mb-2 mr-2 "><span class="ml-3">Calories: ' + valuesss[0]['Calories'] + ' </span><span class="ml-3">Fats: ' + valuesss[0]['Fats'] +
                         'g </span><span class="ml-3">Proteins: ' + valuesss[0]['Proteins'] + 'g </span><span class="ml-3">Carbohydrates: ' + valuesss[0]['Carbohydrates'] + 'g </span><span class="ml-3">Fibre: ' + valuesss[0]['Fibre'] + 'g <span></p></div>')
+                        
                         }})   
                 }}
             </script>
@@ -3447,35 +3537,41 @@ def Maintenance_Plan():
                     var table1 = $('#myTable1');
                     var table2 = $('#myTable2');
 
-                    table.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Breakfast');
                         data.push(row); 
                     }});
 
-                    table1.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table1.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Lunch');
                         data.push(row); 
                     }});
 
-                    table2.find('.selected').each(function (i, el) {{
-                        
-                        var $tds = $(this).find('td:not(:has(img))');
+                    table2.DataTable().rows('.selected').every(function (i, el){{
                         var row = [];
-                        $tds.each(function (i, el){{
-                            row.push($(this).text());
-                        }});
+                        var valuesss = new Array();
+                        this.invalidate();
+                        var Row=this.data();
+                        row.push(Row[1], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8]);         
+                       
+                        console.log(row);
+                
                         row.push('Dinner');
                         data.push(row); 
                     }});
@@ -3498,6 +3594,17 @@ def Maintenance_Plan():
                     hiddenElement.click();  
                 }});
             </script>
+
+            <script defer type="text/javascript">
+                $(document).ready(function() {{
+                $('table.table-striped').dataTable( {{
+                    stateSave: true,
+                    "bPaginate": false,
+                    "bInfo": false,
+                }});
+            }});
+            </script>
+
         </html>"""
                                 )
 
