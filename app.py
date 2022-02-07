@@ -228,20 +228,12 @@ def calc_TDEE():
         sizes = [40, 30, 30]
         explode = (0.1,0, 0)
     if diet_plan == 'Weight Gain':
-        if BMI < 16:
-            calorie_surplus = 500
-            TDEE = BMR * Activity_Level1
-            total_calo = float("{:.0f}".format(TDEE + calorie_surplus)) 
-            total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
-            total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
-            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
-        else:
-            calorie_surplus = 300
-            TDEE = BMR * Activity_Level1
-            total_calo = float("{:.0f}".format(TDEE + calorie_surplus)) 
-            total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
-            total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
-            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
+        calorie_surplus = 300
+        TDEE = BMR * Activity_Level1
+        total_calo = float("{:.0f}".format(TDEE + calorie_surplus)) 
+        total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
+        total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
+        total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
 
         labels = 'Protein', 'Carbohydrate', 'Fat'
         sizes = [25, 50, 25]
@@ -260,23 +252,21 @@ def calc_TDEE():
     my_expander = st.expander(label='Health Check!')
     with my_expander:
         str_bmi = "Your body mass index is **{}**".format(BMI)
-        str_bmr = "Your Basal metabolic rate is **{} calories**".format(BMR)
-        str_tdee = "Your Total Daily Energy Expenditure is **{} calories**".format(TDEE)
-        str_calories = "Our Recommend Total Daily Intake Calories is **{} calories**".format(total_calo)
-        str_protein = "Protein intake should be **{} gam per day**".format(total_protein)
-        str_fat = "Fat intake should be **{} gam per day**".format(total_fat)
-        str_carb = "Carbohydrate intake should be **{} gam per day**".format(total_carb)
+        str_bmr = "Your Basal metabolic rate is **{:.0f} calories**".format(BMR)
+        str_tdee = "Your Total Daily Energy Expenditure is **{:.0f} calories**".format(TDEE)
+        str_calories = "Our Recommend Total Daily Intake Calories is **{:.0f} calories**".format(total_calo)
+        str_protein = "Protein intake should be **{:.0f} gam per day**".format(total_protein)
+        str_fat = "Fat intake should be **{:.0f} gam per day**".format(total_fat)
+        str_carb = "Carbohydrate intake should be **{:.0f} gam per day**".format(total_carb)
          
-        if ( BMI < 16):
-            str_health = "Your body condition is **Severely Underweight**"
-        elif ( BMI >= 16 and BMI < 18.5):
+        if ( BMI < 18.5):
             str_health = "Your body condition is **Underweight**"
         elif ( BMI >= 18.5 and BMI < 25):
             str_health = "Your body condition is **Healthy**"
         elif ( BMI >= 25 and BMI < 30):
-            str_health = "Your body condition is **overweight**"
+            str_health = "Your body condition is **Overweight**"
         elif ( BMI >=30):
-            str_health = "Your body condition is Severely Overweight"
+            str_health = "Your body condition is **Obese**"
 
         st.info(str_bmi + " - " + str_health)
         st.info(str_bmr)
@@ -846,8 +836,11 @@ def Weight_Loss_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 50vw;
+                        height: 15vh;
                         object-fit: cover;
+                        display: block;
+                        margin-left: auto;
+                        margin-right: auto;
                     }}
                     .modal-dialog {{
                         width: 27rem;
@@ -940,7 +933,7 @@ def Weight_Loss_Plan():
             </body>
 
             <div class="modal fade" id="myModal" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="card">
                         <img class="food-image card-img-top" src="" alt="food image">
@@ -1351,7 +1344,8 @@ def Weight_Loss_Plan():
                     $(".Fat-modal span").text(" " + $(this).find('td:eq(4)').text());
                     $(".Protein-modal span").text(" " + $(this).find('td:eq(5)').text());
                     $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(6)').text());
-                    
+
+                    $(".modal-dialog").css("height", "42%");
                     $("#myModal").modal("show");
                     
                     var tableID = $(this).closest('table').attr('id');
@@ -1388,6 +1382,7 @@ def Weight_Loss_Plan():
                     var tableIDD1 = tableID1;
                     tableIDs = tableID1;
                     
+                    $(".modal-dialog").css("height", "82%");
                     $("#myModal").modal("show");
 
 
@@ -1420,6 +1415,7 @@ def Weight_Loss_Plan():
                     var tableIDD2 = tableID2;
                     tableIDs = tableID2;
                     
+                    $(".modal-dialog").css("height", "126%");
                     $("#myModal").modal("show");
 
                  
@@ -1560,13 +1556,22 @@ def Weight_Loss_Plan():
 
             <script defer type="text/javascript">
                 $(document).ready(function() {{
-                $('table.table-striped').dataTable( {{
+                $('table.table-striped').DataTable( {{
                     stateSave: true,
+                    responsive: true,
                     "bPaginate": false,
                     "bInfo": false,
                 }});
             }});
             </script>
+ <script defer type="text/javascript">
+        $('#htmlElement').on('mousedown', function (event) {{
+    event.preventDefault();
+    console.log(event.pageY); 
+   
+    }});
+  </script>
+
         </html>"""
                                 )
 
@@ -1574,7 +1579,7 @@ def Weight_Loss_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,720,2500) 
+    components.html(output_html,height=2500) 
 
 def Weight_Gain_Plan():
     print_user_input()
@@ -1856,8 +1861,11 @@ def Weight_Gain_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 50vw;
+                        height: 15vh;
                         object-fit: cover;
+                        display: block;
+                        margin-left: auto;
+                        margin-right: auto;
                     }}
                     .modal-dialog {{
                         width: 27rem;
@@ -1950,7 +1958,7 @@ def Weight_Gain_Plan():
             </body>
 
             <div class="modal fade" id="myModal" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="card">
                         <img class="food-image card-img-top" src="" alt="food image">
@@ -2365,6 +2373,7 @@ def Weight_Gain_Plan():
                     $(".Protein-modal span").text(" " + $(this).find('td:eq(5)').text());
                     $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(6)').text());
                     
+                    $(".modal-dialog").css("height", "42%");
                     $("#myModal").modal("show");
                     
                     var tableID = $(this).closest('table').attr('id');
@@ -2401,6 +2410,7 @@ def Weight_Gain_Plan():
                     var tableIDD1 = tableID1;
                     tableIDs = tableID1;
                     
+                    $(".modal-dialog").css("height", "82%");
                     $("#myModal").modal("show");
 
 
@@ -2433,6 +2443,7 @@ def Weight_Gain_Plan():
                     var tableIDD2 = tableID2;
                     tableIDs = tableID2;
                     
+                    $(".modal-dialog").css("height", "126%");
                     $("#myModal").modal("show");
 
                  
@@ -2573,18 +2584,9 @@ def Weight_Gain_Plan():
 
             <script defer type="text/javascript">
                 $(document).ready(function() {{
-                $('#myTable').dataTable( {{
+                $('table.table-striped').DataTable( {{
                     stateSave: true,
-                    "bPaginate": false,
-                    "bInfo": false,
-                }});
-                $('#myTable1').dataTable( {{
-                    stateSave: true,
-                    "bPaginate": false,
-                    "bInfo": false,
-                }});
-                $('#myTable2').dataTable( {{
-                    stateSave: true,
+                    responsive: true,
                     "bPaginate": false,
                     "bInfo": false,
                 }});
@@ -2597,7 +2599,7 @@ def Weight_Gain_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,720,2500)  
+    components.html(output_html,height=2500)  
 
 def Maintenance_Plan():
     print_user_input()
@@ -2883,8 +2885,11 @@ def Maintenance_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 50vw;
+                        height: 15vh;
                         object-fit: cover;
+                        display: block;
+                        margin-left: auto;
+                        margin-right: auto;
                     }}
                     .modal-dialog {{
                         width: 27rem;
@@ -2975,7 +2980,7 @@ def Maintenance_Plan():
             </body>
 
             <div class="modal fade" id="myModal" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="card">
                         <img class="food-image card-img-top" src="" alt="food image">
@@ -3389,6 +3394,7 @@ def Maintenance_Plan():
                     $(".Protein-modal span").text(" " + $(this).find('td:eq(5)').text());
                     $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(6)').text());
                     
+                    $(".modal-dialog").css("height", "42%");
                     $("#myModal").modal("show");
                     
                     var tableID = $(this).closest('table').attr('id');
@@ -3425,6 +3431,7 @@ def Maintenance_Plan():
                     var tableIDD1 = tableID1;
                     tableIDs = tableID1;
                     
+                    $(".modal-dialog").css("height", "82%");
                     $("#myModal").modal("show");
 
 
@@ -3457,6 +3464,7 @@ def Maintenance_Plan():
                     var tableIDD2 = tableID2;
                     tableIDs = tableID2;
                     
+                    $(".modal-dialog").css("height", "126%");
                     $("#myModal").modal("show");
 
                  
@@ -3599,6 +3607,7 @@ def Maintenance_Plan():
                 $(document).ready(function() {{
                 $('table.table-striped').dataTable( {{
                     stateSave: true,
+                    responsive: true,
                     "bPaginate": false,
                     "bInfo": false,
                 }});
@@ -3612,7 +3621,7 @@ def Maintenance_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,720,2500)  
+    components.html(output_html,height=2500)  
 
 def Predict():
     print_prediction_input()
@@ -3805,12 +3814,12 @@ st.markdown(
     """
     <style>
     [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 500px;
+        width: 400px;
         
     }
     [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 500px;
-        margin-left: -500px;
+        width: 400px;
+        margin-left: -400px;
     }
     </style>
     """,
@@ -3821,8 +3830,8 @@ st.markdown(
     """
     <style>
     .css-1d391kg {
-        padding-left: 52px;
-        padding-right: 52px;
+        padding-left: 20px;
+        padding-right: 20px;
         # padding-top: 43px;
     }
     </style>
@@ -3856,7 +3865,7 @@ with user_input:
         st.sidebar.subheader("What is your gender?")
         gender = st.sidebar.selectbox('Choose your gender!', options=['Male','Female'])
 
-        st.sidebar.subheader("How much do you weigh?")
+        st.sidebar.subheader("How much do you weight?")
         weight = st.sidebar.text_input('Enter your weight in kg!', '60')
 
         st.sidebar.subheader("How tall are you?")
