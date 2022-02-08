@@ -209,44 +209,36 @@ def calc_TDEE():
 
     BMI = calc_BMI()
     if diet_plan == 'Weight Loss':
-        if BMI >= 30:
-            calorie_deficit = 500
-            TDEE = BMR * Activity_Level1
-            total_calo = float("{:.0f}".format(TDEE - calorie_deficit)) 
-            total_protein = float("{:.0f}".format((total_calo * 0.4)/4))
-            total_carb = float("{:.0f}".format((total_calo * 0.3)/4)) 
-            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9)) 
-        else:
-            calorie_deficit = 300
-            TDEE = BMR * Activity_Level1
-            total_calo = float("{:.0f}".format(TDEE - calorie_deficit)) 
-            total_protein = float("{:.0f}".format((total_calo * 0.4)/4))
-            total_carb = float("{:.0f}".format((total_calo * 0.3)/4)) 
-            total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
+        TDEE = BMR * Activity_Level1
+        calorie_deficit = 0.15 * TDEE
+        total_calo = float("{:.0f}".format(TDEE - calorie_deficit)) 
+        total_protein = float("{:.0f}".format((total_calo * 0.4)/4))
+        total_carb = float("{:.0f}".format((total_calo * 0.3)/4)) 
+        total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
 
         labels = 'Protein', 'Carbohydrate', 'Fat'
         sizes = [40, 30, 30]
         explode = (0.1,0, 0)
     if diet_plan == 'Weight Gain':
-        calorie_surplus = 300
         TDEE = BMR * Activity_Level1
+        calorie_surplus = 0.15 * TDEE
         total_calo = float("{:.0f}".format(TDEE + calorie_surplus)) 
-        total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
+        total_protein = float("{:.0f}".format((total_calo * 0.3)/4))
         total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
         total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
 
         labels = 'Protein', 'Carbohydrate', 'Fat'
-        sizes = [25, 50, 25]
+        sizes = [30, 50, 20]
         explode = (0,0.1, 0)
     if diet_plan == 'Maintenance':
         TDEE = BMR * Activity_Level1
         total_calo = float("{:.0f}".format(TDEE)) 
-        total_protein = float("{:.0f}".format((total_calo * 0.25)/4))
-        total_carb = float("{:.0f}".format((total_calo * 0.5)/4)) 
+        total_protein = float("{:.0f}".format((total_calo * 0.3)/4))
+        total_carb = float("{:.0f}".format((total_calo * 0.4)/4)) 
         total_fat = float("{:.0f}".format((total_calo - total_protein*4 - total_carb*4)/9))
 
         labels = 'Protein', 'Carbohydrate', 'Fat'
-        sizes = [25, 50, 25]
+        sizes = [30, 40, 30]
         explode = (0,0.1, 0)
 
     my_expander = st.expander(label='Health Check!')
@@ -836,7 +828,7 @@ def Weight_Loss_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 15vh;
+                        height: 13vh;
                         object-fit: cover;
                         display: block;
                         margin-left: auto;
@@ -1608,7 +1600,7 @@ def Weight_Gain_Plan():
     rows_list = []
     # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==2:
+        if row['KMCluster']==0 or row['KMCluster']==2 or row['KMCluster']==1:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
@@ -1619,13 +1611,13 @@ def Weight_Gain_Plan():
     df.append(df, ignore_index = True, sort = False)
 
     array_test = df.to_numpy()
-    
+    df = df.reset_index(drop=True)
     breakfast_df = df
 
     rows_list = []
     # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
-        if row['KMCluster']==2 or row['KMCluster']==0:
+        if row['KMCluster']==2 or row['KMCluster']==0 or row['KMCluster']==1:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
@@ -1636,13 +1628,14 @@ def Weight_Gain_Plan():
     df.append(df, ignore_index = True, sort = False)
 
     array_test = df.to_numpy()
+    df = df.reset_index(drop=True)
     lunch_df = df
 
 
     rows_list = []
     st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN')
     for idx, row in DinnerNutrition.iterrows():
-        if row['KMCluster']==0 or row['KMCluster']==1:
+        if row['KMCluster']==0 or row['KMCluster']==1 or row['KMCluster']==2:
             # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
@@ -1652,8 +1645,9 @@ def Weight_Gain_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    dinner_df = df
     array_test = df.to_numpy()
+    df = df.reset_index(drop=True)
+    dinner_df = df
 
     template = jinja2.Template(f"""<!DOCTYPE html>
         <html>
@@ -3784,31 +3778,24 @@ def Predict():
     # (graph, ) = pydot.graph_from_dot_file('small_tree.dot')
     # graph.write_png('small_tree.png')
 
+   
     if y_pred==1:
         st.info('LOW CALORIES: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+        st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644205929/pexels-photo-1640771_z0a8gi.jpg')
     if y_pred==0:
         st.info('HIGH PROTEIN: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+        st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644205929/pexels-photo-1640771_z0a8gi.jpg')
     if y_pred==2:
-        st.info('HIGH CALORIES - HIGH CARBOHYDRATE: SUITABLE FOR **WEIGHT GAIN**')
+        st.info('HIGH CALORIES - HIGH CARBOHYDRATE & FAT: ONLY SUITABLE FOR **WEIGHT GAIN**')
+        st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644206244/pexels-dayvison-de-oliveira-silva-5695890_md1pft.jpg')
 
     st.balloons()
-
-    # # Get numerical feature importances
-    # importances = list(clf.feature_importances_)
-    # # List of tuples with variable and importance
-    # feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
-    # # Sort the feature importances by most important first
-    # feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-    # # Print out the feature and importances 
-    # [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
-
 
 st.set_page_config(layout="centered")
     
 header = st.container()
 user_input = st.container()
 table_result = st.container()
-
 
 st.markdown(
     """
@@ -3906,22 +3893,19 @@ with user_input:
             button = st.sidebar.button('Do it now!', on_click=Maintenance_Plan)
 
     if choice == 'Predict food for diet plan':
-        st.sidebar.subheader("What is the name of the food?")
-        food_name = st.sidebar.text_input("Enter the food's name!", 'Banana')
-
         st.sidebar.subheader("Enter calories in 100g of food!")
-        food_calories = st.sidebar.text_input("Enter the amount of calories in the food!", '89')
+        food_calories = st.sidebar.text_input("Enter the amount of calories in the food!", '319')
 
         st.sidebar.subheader("Enter the amount of fat in 100g of food!")
-        food_fat = st.sidebar.text_input("Enter the grams of fat!", '0.3')
+        food_fat = st.sidebar.text_input("Enter the grams of fat!", '9.7')
 
         st.sidebar.subheader("Enter the amount of protein in 100g of food!")
-        food_protein = st.sidebar.text_input("Enter the grams of protein!", '1.1')
+        food_protein = st.sidebar.text_input("Enter the grams of protein!", '6.9')
 
         st.sidebar.subheader("Enter the amount of carbohydrate in 100g of food!")
-        food_carb = st.sidebar.text_input("Enter the grams of carbohydrate!", '23')
+        food_carb = st.sidebar.text_input("Enter the grams of carbohydrate!", '52.8')
 
         st.sidebar.subheader("Enter the amount of fibre in 100g of food!")
-        food_fibre = st.sidebar.text_input("Enter the grams of fibre!", '2.6')
+        food_fibre = st.sidebar.text_input("Enter the grams of fibre!", '0')
 
         st.sidebar.button('Do it now!', on_click=Predict)
