@@ -30,10 +30,6 @@ import yaml
 import configs
 from streamlit.legacy_caching.hashing import _CodeHasher
 
-# with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), configs_file)) as f:
-#     configs = yaml.load(f.read())
-# configs['APP_BASE_DIR'] = os.path.dirname(os.path.realpath(__file__))
-
 class _SessionState:
 
     def __init__(self, session, hash_funcs):
@@ -106,8 +102,6 @@ def _get_state(hash_funcs=None):
         session._custom_session_state = _SessionState(session, hash_funcs)
 
     return session._custom_session_state
-
-## My functions
 
 def autosave_session(state):
    # The session file is saved in the path saved in the state key called state.session_autosave_file_abs, which is declared in the beginning of the script
@@ -196,7 +190,7 @@ images = [
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639738558/Tomato_sf3vyz.jpg',
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639741014/Yogurt_rlf2rk.jpg',
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639741014/Brownie_ykpxvq.jpg',
-    'https://res.cloudinary.com/hoaibao232/image/upload/v1639741014/Noodles_ikm59c.jpg',
+    'https://res.cloudinary.com/hoaibao232/image/upload/v1644552047/Wheat_Noodles_eswiv1.jpg',
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639741014/Uttapam_muoad3.jpg',
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639741014/Bhaji_Pav_datcj6.jpg',
     'https://res.cloudinary.com/hoaibao232/image/upload/v1639741014/Dal_Makhani_uript4.jpg',
@@ -399,11 +393,6 @@ def calc_TDEE():
         st.pyplot(fig1)
         
         st.balloons()
-    # st.info("**Your Total Daily Energy Expenditure is: ", TDEE , 'calories**')
-    # st.info("**Our recommend Total Daily Intake Calories is: ", total_calo , 'calories**')
-    # st.info("**Total Protein is: ", total_protein , 'g**')
-    # st.info("**Total Carbohydrates is: ", total_carb , 'g**')
-    # st.info("**Total Fats is: ", total_fat , 'g**')
 
     return TDEE,total_calo,total_protein,total_carb,total_fat
 
@@ -615,15 +604,15 @@ def cluster_food(FoodItemIDData, FoodItem_Test):
     # plt.title('K-means Clustering with 2 dimensions')
     # st.pyplot(fig)
 
-    # # Check Elbow plot
-    # wss =[] 
-    # for i in range(1,11):
-    #     KM_Meals = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
-    #     KM_Meals.fit(foods_scaled_data)
-    #     wss.append(KM_Meals.inertia_)
-    # fig = plt.figure(figsize = (10, 5))
-    # plt.plot(range(1,11), wss, marker = '*')
-    # st.pyplot(fig)
+    # Check Elbow plot
+    wss =[] 
+    for i in range(1,11):
+        KM_Meals = KMeans(init="k-means++", n_clusters=i, n_init=50, max_iter=500, random_state=42)
+        KM_Meals.fit(foods_scaled_data)
+        wss.append(KM_Meals.inertia_)
+    fig = plt.figure(figsize = (10, 5))
+    plt.plot(range(1,11), wss, marker = '*')
+    st.pyplot(fig)
 
     # # Check silhouette score
     # for i in range(2,10):
@@ -639,7 +628,7 @@ def cluster_food(FoodItemIDData, FoodItem_Test):
     clust_profile=FoodItem_Test.iloc[:,[2,3,4,9,10]].astype(float).groupby(FoodItem_Test['KMCluster']).mean()
     clust_profile['KMFrequency']=FoodItem_Test.KMCluster.value_counts().sort_index()
     clust = pd.DataFrame(clust_profile)
-    # st.dataframe(clust)
+    st.dataframe(clust)
 
     # c_data_path = "/Users/hoaibao/DATN/DATN_ML/image"
     # L = FoodItem_Test['Food_items']
@@ -674,21 +663,13 @@ def Weight_Loss_Plan():
   
     brklbl = breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastNutrition)
 
-    # st.write("--------------------------------------------------------------------")
-
     lnchlbl = lunch_cluster_food(LunchFoodItemIDdata, LunchNutrition)
-
-    # st.write("--------------------------------------------------------------------")
 
     dnrlbl = dinner_cluster_food(DinnerFoodItemIDdata, DinnerNutrition)
     
-    # st.write("--------------------------------------------------------------------")
-
     rows_list = []
     for idx, row in BreakfastNutrition.iterrows():
         if row['KMCluster']==1:
-            # row = row.drop(['KMCluster'])
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -700,18 +681,14 @@ def Weight_Loss_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     breakfast_df = df
-    # st.dataframe(df)
 
     lenn = len(rows_list)
     
     rows_list = []
-    # st.subheader('SUGGESTED FOOD ITEMS FOR WEIGHT LOSS (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
         if row['KMCluster']==0 or row['KMCluster']==1:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
   
@@ -723,16 +700,13 @@ def Weight_Loss_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     lunch_df = df
-    # st.dataframe(df)
 
     rows_list = []
     st.subheader('CREATE MEAL PLAN FOR WEIGHT LOSS')
     for idx, row in DinnerNutrition.iterrows():
         if row['KMCluster']==1 or row['KMCluster']==2:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'],row['Fibre'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -747,12 +721,7 @@ def Weight_Loss_Plan():
     df = df.reset_index(drop=True)
 
     dinner_df = df
-    array_test = df.to_numpy()
     
-    
-    # st.dataframe(df)
-
-    # Generate HTML from template.
     template = jinja2.Template(f"""<!DOCTYPE html>
         <html>
             <head>
@@ -962,7 +931,7 @@ def Weight_Loss_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 9vh;
+                        height: 7vh;
                         object-fit: cover;
                         display: block;
                         margin-left: auto;
@@ -1016,7 +985,7 @@ def Weight_Loss_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="calories-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="calories-left" style="width:100%">
-                        Left: {total_calo}
+                        Remaining: {total_calo}
                     </div>
                 </div>
                 <h6 class="start mt-1">Calories Daily Intake</h6>
@@ -1026,7 +995,7 @@ def Weight_Loss_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="fats-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="fats-left" style="width:100%">
-                        Left: {total_fat}g
+                        Remaining: {total_fat}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Fat Daily Intake</div>
@@ -1036,7 +1005,7 @@ def Weight_Loss_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="protein-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="protein-left" style="width:100%">
-                        Left: {total_protein}g
+                        Remaining: {total_protein}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Protein Daily Intake</div>
@@ -1046,7 +1015,7 @@ def Weight_Loss_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="carb-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="carb-left" style="width:100%">
-                        Left: {total_carb}g
+                        Remaining: {total_carb}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Carbohydrate Daily Intake</div>
@@ -1497,7 +1466,7 @@ def Weight_Loss_Plan():
                     $(".Carbohydrate-modal span").text(" " + $(this).find('td:eq(6)').text());
                     $(".Fibre-modal span").text(" " + $(this).find('td:eq(7)').text());
 
-                    $(".modal-dialog").css("height", "51.5%");
+                    $(".modal-dialog").css("height", "39vh");
                     $("#volumnHelp").css("display", "none");
                     $("#myModal").modal("show");
                     
@@ -1536,7 +1505,7 @@ def Weight_Loss_Plan():
                     var tableIDD1 = tableID1;
                     tableIDs = tableID1;
                     
-                    $(".modal-dialog").css("height", "108.5%");
+                    $(".modal-dialog").css("height", "79vh");
                     $("#volumnHelp").css("display", "none");
                     $("#myModal").modal("show");
 
@@ -1571,7 +1540,7 @@ def Weight_Loss_Plan():
                     var tableIDD2 = tableID2;
                     tableIDs = tableID2;
                     
-                    $(".modal-dialog").css("height", "166%");
+                    $(".modal-dialog").css("height", "119vh");
                     $("#volumnHelp").css("display", "none");
                     $("#myModal").modal("show");
 
@@ -1706,7 +1675,7 @@ def Weight_Loss_Plan():
                     hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);  
                     hiddenElement.target = '_blank';  
                     
-                    hiddenElement.download = 'Diet Plan Meal';  
+                    hiddenElement.download = 'Diet Plan Meal';
                     hiddenElement.click();  
                 }});
             </script>
@@ -1729,11 +1698,7 @@ def Weight_Loss_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
     
-    components.html(output_html,height=3000)
-
-    # if 'weightloss' not in st.session_state:
-    #     st.session_state["weightloss"] = weightloss
-
+    components.html(output_html,height=3700)
 
 def Weight_Gain_Plan():
     print_user_input()
@@ -1751,19 +1716,14 @@ def Weight_Gain_Plan():
     LunchFoodItemIDdata=LunchFoodItemIDdata.to_numpy()
 
     brklbl = breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastNutrition)
-    print("--------------------------------------------------------------------")
 
     lnchlbl = lunch_cluster_food(LunchFoodItemIDdata, LunchNutrition)
-    print("--------------------------------------------------------------------")
 
     dnrlbl = dinner_cluster_food(DinnerFoodItemIDdata, DinnerNutrition)
-    print("--------------------------------------------------------------------")
 
     rows_list = []
-    # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
         if row['KMCluster']==0 or row['KMCluster']==2 or row['KMCluster']==1:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -1775,15 +1735,12 @@ def Weight_Gain_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     breakfast_df = df
 
     rows_list = []
-    # print ('SUGGESTED FOOD ITEMS FOR WEIGHT GAIN (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
         if row['KMCluster']==2 or row['KMCluster']==0 or row['KMCluster']==1:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -1795,7 +1752,6 @@ def Weight_Gain_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     lunch_df = df
 
@@ -1804,7 +1760,6 @@ def Weight_Gain_Plan():
     st.subheader('CREATE MEAL PLAN FOR WEIGHT GAIN')
     for idx, row in DinnerNutrition.iterrows():
         if row['KMCluster']==0 or row['KMCluster']==1 or row['KMCluster']==2:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -1816,7 +1771,6 @@ def Weight_Gain_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     dinner_df = df
 
@@ -2030,7 +1984,7 @@ def Weight_Gain_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 9vh;
+                        height: 7vh;
                         object-fit: cover;
                         display: block;
                         margin-left: auto;
@@ -2082,7 +2036,7 @@ def Weight_Gain_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="calories-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="calories-left" style="width:100%">
-                        Left: {total_calo}
+                        Remaining: {total_calo}
                     </div>
                 </div>
                 <h6 class="start mt-1">Calories Daily Intake</h6>
@@ -2092,7 +2046,7 @@ def Weight_Gain_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="fats-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="fats-left" style="width:100%">
-                        Left: {total_fat}g
+                        Remaining: {total_fat}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Fat Daily Intake</div>
@@ -2102,7 +2056,7 @@ def Weight_Gain_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="protein-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="protein-left" style="width:100%">
-                        Left: {total_protein}g
+                        Remaining: {total_protein}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Protein Daily Intake</div>
@@ -2112,7 +2066,7 @@ def Weight_Gain_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="carb-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="carb-left" style="width:100%">
-                        Left: {total_carb}g
+                        Remaining: {total_carb}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Carbohydrate Daily Intake</div>
@@ -2795,7 +2749,7 @@ def Weight_Gain_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,height=3000)  
+    components.html(output_html,height=3700)  
 
 def Maintenance_Plan():
     print_user_input()
@@ -2813,19 +2767,14 @@ def Maintenance_Plan():
     LunchFoodItemIDdata=LunchFoodItemIDdata.to_numpy()
 
     brklbl = breakfast_cluster_food(BreakfastFoodItemIDData, BreakfastNutrition)
-    print("--------------------------------------------------------------------")
 
     lnchlbl = lunch_cluster_food(LunchFoodItemIDdata, LunchNutrition)
-    print("--------------------------------------------------------------------")
 
     dnrlbl = dinner_cluster_food(DinnerFoodItemIDdata, DinnerNutrition)
-    print("--------------------------------------------------------------------")
 
     rows_list = []
-    # print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (BREAKFAST)')
     for idx, row in BreakfastNutrition.iterrows():
         if row['KMCluster']==0 or row['KMCluster']==1:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -2837,15 +2786,12 @@ def Maintenance_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     breakfast_df = df
 
     rows_list = []
-    # print ('SUGGESTED FOOD ITEMS FOR MAINTENANCE (LUNCH)')
     for idx, row in LunchNutrition.iterrows():
         if row['KMCluster']==0 or row['KMCluster']==1:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -2857,16 +2803,13 @@ def Maintenance_Plan():
 
     df.append(df, ignore_index = True, sort = False)
 
-    array_test = df.to_numpy()
     df = df.reset_index(drop=True)
     lunch_df = df
-
 
     rows_list = []
     st.subheader('CREATE MEAL PLAN FOR MAINTENANCE')
     for idx, row in DinnerNutrition.iterrows():
         if row['KMCluster']==1 or row['KMCluster']==2:
-            # print(row['Food_items'],row['Calories'],row['Fats'],row['Proteins'],row['Carbohydrates'])
             row = row[['Image','Food_items', 'Calories', 'Fats', 'Proteins', 'Carbohydrates', 'Fibre']]
             rows_list.append(row)
 
@@ -2881,7 +2824,6 @@ def Maintenance_Plan():
     df = df.reset_index(drop=True)
 
     dinner_df = df
-    array_test = df.to_numpy()
 
     template = jinja2.Template(f"""<!DOCTYPE html>
         <html>
@@ -3094,7 +3036,7 @@ def Maintenance_Plan():
                     
                     .card-img-top {{
                         width: 100%;
-                        height: 9vh;
+                        height: 7vh;
                         object-fit: cover;
                         display: block;
                         margin-left: auto;
@@ -3144,7 +3086,7 @@ def Maintenance_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="calories-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="calories-left" style="width:100%">
-                        Left: {total_calo}
+                        Remaining: {total_calo}
                     </div>
                 </div>
                 <h6 class="start mt-1">Calories Daily Intake</h6>
@@ -3154,7 +3096,7 @@ def Maintenance_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="fats-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="fats-left" style="width:100%">
-                        Left: {total_fat}g
+                        Remaining: {total_fat}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Fat Daily Intake</div>
@@ -3164,7 +3106,7 @@ def Maintenance_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="protein-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="protein-left" style="width:100%">
-                        Left: {total_protein}g
+                        Remaining: {total_protein}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Protein Daily Intake</div>
@@ -3174,7 +3116,7 @@ def Maintenance_Plan():
                 <div class="progress" style="height: 30px;">
                     <div class="progress-bar bg-info" id="carb-intake" style="width: 0%;"></div>
                     <div class="progress-bar bg-secondary" id="carb-left" style="width:100%">
-                        Left: {total_carb}g
+                        Remaining: {total_carb}g
                     </div>
                 </div>
                 <h6 class="start mt-1">Carbohydrate Daily Intake</div>
@@ -3650,7 +3592,7 @@ def Maintenance_Plan():
 
                     $(".food-image").attr("src", $(this).find('img').attr('src'));
                     $(".card-body div span").text("");
-                    $(".col-sm-9 input").val($(this).find('td:eq(0)').text());
+                    $(".col-sm-4 input").val($(this).find('td:eq(0)').text());
                     $(".Food-modal span").text(" " + $(this).find('td:eq(2)').text());
                     $(".Calories-modal span").text(" " + $(this).find('td:eq(3)').text());
                     $(".Fat-modal span").text(" " + $(this).find('td:eq(4)').text());
@@ -3685,7 +3627,7 @@ def Maintenance_Plan():
 
                     $(".food-image").attr("src", $(this).find('img').attr('src'));
                     $(".card-body div span").text("");
-                    $(".col-sm-9 input").val($(this).find('td:eq(0)').text());
+                    $(".col-sm-4 input").val($(this).find('td:eq(0)').text());
                     $(".Food-modal span").text(" " + $(this).find('td:eq(2)').text());
                     $(".Calories-modal span").text(" " + $(this).find('td:eq(3)').text());
                     $(".Fat-modal span").text(" " + $(this).find('td:eq(4)').text());
@@ -3855,7 +3797,7 @@ def Maintenance_Plan():
                 breakfast_dataframe=breakfast_df.to_html(classes='table table-striped', header="true", table_id="myTable", escape=False ,formatters=dict(Image=path_to_image_html)),
                 dinner_dataframe=dinner_df.to_html(classes='table table-striped', header="true", table_id="myTable2", escape=False ,formatters=dict(Image=path_to_image_html)))
 
-    components.html(output_html,height=3000)  
+    components.html(output_html,height=3700)  
 
 def Predict():
     print_prediction_input()
@@ -3867,7 +3809,6 @@ def Predict():
     FoodItemIDData=FoodItemIDData.to_numpy()
   
     foodlbs = cluster_food(FoodItemIDData, FoodNutrion)
-    # print(FoodNutrion)
     labels = np.array(FoodNutrion['KMCluster'])
     labels = FoodNutrion['KMCluster']
     features= FoodNutrion.drop(['KMCluster','Food_items','VegNovVeg','Iron', 'Calcium', 'Sodium', 'Potassium','VitaminD','Sugars'], axis = 1)
@@ -4020,14 +3961,38 @@ def Predict():
 
    
     if y_pred==1:
-        st.info('LOW CALORIES: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
-        st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644205929/pexels-photo-1640771_z0a8gi.jpg')
+        st.subheader(food_name.upper())
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1.metric("Volumn", "100 g")
+        col2.metric("Calories", food_calories)
+        col3.metric("Fat", str(food_fat) + ' g')
+        col4.metric("Protein", str(food_protein) + ' g')
+        col5.metric("Carbohydrate", str(food_carb) + ' g')
+        col6.metric("Fibre", str(food_fibre) + ' g')
+        st.info('LOW CALORIES, MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+        # st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644205929/pexels-photo-1640771_z0a8gi.jpg')
     if y_pred==0:
-        st.info('HIGH PROTEIN: MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
-        st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644205929/pexels-photo-1640771_z0a8gi.jpg')
+        st.subheader(food_name.upper())
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1.metric("Volumn", "100 g")
+        col2.metric("Calories", food_calories)
+        col3.metric("Fat", str(food_fat) + ' g')
+        col4.metric("Protein", str(food_protein) + ' g')
+        col5.metric("Carbohydrate", str(food_carb) + ' g')
+        col6.metric("Fibre", str(food_fibre) + ' g')
+        st.info('HIGH PROTEIN, MOST SUITABLE FOR **WEIGHT LOSS** AND **MAINTENANCE**')
+        # st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644205929/pexels-photo-1640771_z0a8gi.jpg')
     if y_pred==2:
-        st.info('HIGH CALORIES - HIGH CARBOHYDRATE & FAT: ONLY SUITABLE FOR **WEIGHT GAIN**')
-        st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644206244/pexels-dayvison-de-oliveira-silva-5695890_md1pft.jpg')
+        st.subheader(food_name.upper())
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1.metric("Volumn", "100 g")
+        col2.metric("Calories", food_calories)
+        col3.metric("Fat", str(food_fat) + ' g')
+        col4.metric("Protein", str(food_protein) + ' g')
+        col5.metric("Carbohydrate", str(food_carb) + ' g')
+        col6.metric("Fibre", str(food_fibre) + ' g')
+        st.info('HIGH CALORIES - HIGH CARBOHYDRATE & FAT, ONLY SUITABLE FOR **WEIGHT GAIN**')
+        # st.image('https://res.cloudinary.com/hoaibao232/image/upload/v1644206244/pexels-dayvison-de-oliveira-silva-5695890_md1pft.jpg')
 
     st.balloons()
 
@@ -4072,14 +4037,7 @@ def Meal_Plan_UI():
 
     st.sidebar.subheader("Are you ready?")
     submitForm = st.sidebar.checkbox('Do it now!')
-
-    # if diet_plan == 'Weight Loss':
-    #     button = st.sidebar.button('Do it now!', on_click=Weight_Loss_Plan)
-    # elif diet_plan == 'Weight Gain':
-    #     button = st.sidebar.button('Do it now!', on_click=Weight_Gain_Plan)
-    # elif diet_plan == 'Maintenance':
-    #     button = st.sidebar.button('Do it now!', on_click=Maintenance_Plan)
-    
+  
     if age and gender and weight and height and activity_level and diet_plan and submitForm:
         if diet_plan == 'Weight Loss':
             if 'plan_state' not in st.session_state:
@@ -4097,6 +4055,7 @@ def Predict_UI():
     global food_protein
     global food_carb
     global food_fibre
+    global food_name
 
     st.sidebar.subheader("Enter the food name!")
     food_name = st.sidebar.text_input("Enter the food name!", key="food_name")
@@ -4119,13 +4078,11 @@ def Predict_UI():
     st.sidebar.subheader("Are you ready?")
     submitForm = st.sidebar.checkbox('Do it now!')
 
-    if food_calories and food_fat and food_protein and food_carb and food_fibre and submitForm:
+    if food_name and food_calories and food_fat and food_protein and food_carb and food_fibre and submitForm:
         Predict()
     
-    # st.text('dsdsds')
-
 def main():
-    st.set_page_config(layout="centered")
+    st.set_page_config(page_title='Eat Better Daily', page_icon="https://res.cloudinary.com/hoaibao232/image/upload/v1644550372/eatbetterdaily_alkw1o.png", layout="centered")
     state = _get_state()
 
     st.markdown(
@@ -4177,12 +4134,9 @@ def main():
         "Predict food for diet plan": Predict_UI,
     }
 
-    # If 'page' is present, update session_state with itself to preserve
-    # values when navigating from Home to Settings.
     if "page" in st.session_state:
         st.session_state.update(st.session_state)
 
-    # If 'page' is not present, setup default values for settings widgets.
     else:
         st.session_state.update({
             # Default page
@@ -4200,126 +4154,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-   
-    # session_was_shutdown = was_session_shutdown(state)
-    # state.session_autosave_file_abs = os.path.join(configs['APP_BASE_DIR'], configs['MODELS_DIR'], '') + str("\~session_auto_save.pickle")
-    # if session_was_shutdown:  
-    #     load_autosaved_session(state)
-
-    # st.set_page_config(layout="centered")
-  
-
-        
-    # header = st.container()
-    # user_input = st.container()
-    # table_result = st.container()
-
-    # st.markdown(
-    #     """
-    #     <style>
-    #     [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-    #         width: 400px;
-            
-    #     }
-    #     [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-    #         width: 400px;
-    #         margin-left: -400px;
-    #     }
-    #     </style>
-    #     """,
-    #     unsafe_allow_html=True,
-    # )
-
-    # st.markdown(
-    #     """
-    #     <style>
-    #     .css-1d391kg {
-    #         padding-left: 20px;
-    #         padding-right: 20px;
-    #         # padding-top: 43px;
-    #     }
-    #     </style>
-    #     """,
-    #     unsafe_allow_html=True
-    # )
-
-    # st.markdown(
-    #     """
-    #     <style>
-    #     .css-177yq5e ul {
-    #         margin-bottom: 0px;
-    #         margin-left: 20px;
-    #     }
-    #     </style>
-    #     """,
-    #     unsafe_allow_html=True
-    # )
-
-    # with header:
-    #     st.sidebar.title('Eat Better Daily')
-
-    # with user_input:
-    #     choice = st.sidebar.radio("You want",['Create meal plan', "Predict food for diet plan"])
-        
-    #     if choice == 'Create meal plan':
-    #         st.sidebar.subheader("How old are you?")
-    #         age = st.sidebar.text_input('Enter your age!', '20')
-
-    #         st.sidebar.subheader("What is your gender?")
-    #         gender = st.sidebar.selectbox('Choose your gender!', options=['Male','Female'])
-
-    #         st.sidebar.subheader("How much do you weight?")
-    #         weight = st.sidebar.text_input('Enter your weight in kg!', '60')
-
-    #         st.sidebar.subheader("How tall are you?")
-    #         height = st.sidebar.text_input('Enter your height in cm!', '170')
-
-    #         st.sidebar.subheader("What is your activity level?")
-
-    #         st.sidebar.markdown('* **Sedentary** (little or no exercise, desk job)')
-    #         st.sidebar.markdown('* **Lightly active** (light exercise/sports 1-3 days/week)')
-    #         st.sidebar.markdown('* **Moderately active** (moderate exercise 6-7 days)')
-    #         st.sidebar.markdown('* **Very active** (hard exercise every day, or 2 xs/day)')
-    #         st.sidebar.markdown('* **Extra active** (hard exercise 2 or more times per day)')
-
-    #         activity_level = st.sidebar.select_slider('Choose your activity level!', options=[
-    #             'Sedentary',
-    #             'Lightly active',
-    #             'Moderately active',
-    #             'Very active',
-    #             'Extra active'])
-
-    #         st.sidebar.subheader("What is your diet plan?")
-    #         diet_plan = st.sidebar.radio(
-    #         "Choose your diet plan!",
-    #         ('Weight Loss', 'Weight Gain', 'Maintenance'))
-
-    #         st.sidebar.subheader("Are you ready?")
-    #         if diet_plan == 'Weight Loss':
-    #             button = st.sidebar.button('Do it now!', on_click=Weight_Loss_Plan)
-    #         elif diet_plan == 'Weight Gain':
-    #             button = st.sidebar.button('Do it now!', on_click=Weight_Gain_Plan)
-    #         elif diet_plan == 'Maintenance':
-    #             button = st.sidebar.button('Do it now!', on_click=Maintenance_Plan)
-
-    #     if choice == 'Predict food for diet plan':
-    #         st.sidebar.subheader("Enter calories in 100g of food!")
-    #         food_calories = st.sidebar.text_input("Enter the amount of calories in the food!", '319')
-
-    #         st.sidebar.subheader("Enter the amount of fat in 100g of food!")
-    #         food_fat = st.sidebar.text_input("Enter the grams of fat!", '9.7')
-
-    #         st.sidebar.subheader("Enter the amount of protein in 100g of food!")
-    #         food_protein = st.sidebar.text_input("Enter the grams of protein!", '6.9')
-
-    #         st.sidebar.subheader("Enter the amount of carbohydrate in 100g of food!")
-    #         food_carb = st.sidebar.text_input("Enter the grams of carbohydrate!", '52.8')
-
-    #         st.sidebar.subheader("Enter the amount of fibre in 100g of food!")
-    #         food_fibre = st.sidebar.text_input("Enter the grams of fibre!", '0')
-
-    #         st.sidebar.button('Do it now!', on_click=Predict)
-
-    # state = _get_state()
-    # state.sync()
-    # autosave_session(state)
